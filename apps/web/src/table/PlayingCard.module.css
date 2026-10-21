@@ -1,0 +1,149 @@
+.card {
+  --card-width: var(--table-card-width);
+  position: relative;
+  width: var(--card-width);
+  aspect-ratio: 5 / 7;
+  perspective: 700px;
+  flex: none;
+}
+
+.card[data-size='hand'] {
+  --card-width: var(--hand-card-width);
+}
+
+.inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.front,
+.back {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--card-width) * 0.12);
+  backface-visibility: hidden;
+  box-shadow:
+    0 6px 14px rgb(0 0 0 / 0.35),
+    0 1px 0 rgb(255 255 255 / 0.6) inset;
+}
+
+.front {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, #fff, var(--color-card));
+  color: var(--color-card-ink);
+  font-family: var(--font-display);
+  border: 1px solid rgb(0 0 0 / 0.08);
+}
+
+.value {
+  font-size: calc(var(--card-width) * 0.46);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.card[data-long='true'] .inner .value,
+.replaced[data-long='true'] .value {
+  font-size: calc(var(--card-width) * 0.34);
+  letter-spacing: -0.03em;
+}
+
+/* Getauscht: Die ursprünglich aufgedeckte Karte liegt schräg darunter. */
+.replaced {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: calc(var(--card-width) * 0.12);
+  background: linear-gradient(160deg, #eceae2, #d9d6cb);
+  color: rgb(23 23 28 / 0.55);
+  font-family: var(--font-display);
+  border: 1px solid rgb(0 0 0 / 0.12);
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.35);
+  transform-origin: 50% 90%;
+}
+
+.replaced .corner {
+  color: rgb(192 38 45 / 0.55);
+}
+
+.corner {
+  position: absolute;
+  top: 6%;
+  left: 9%;
+  font-size: calc(var(--card-width) * 0.17);
+  font-weight: 700;
+  color: var(--color-card-red);
+  line-height: 1;
+}
+
+.cornerBottom {
+  top: auto;
+  left: auto;
+  right: 9%;
+  bottom: 6%;
+  transform: rotate(180deg);
+}
+
+.back {
+  transform: rotateY(180deg);
+  background:
+    radial-gradient(circle at 50% 50%, transparent 32%, rgb(0 0 0 / 0.12) 33%, transparent 34%),
+    repeating-linear-gradient(
+      45deg,
+      var(--color-card-back) 0 5px,
+      var(--color-card-back-pattern) 5px 10px
+    );
+  border: calc(var(--card-width) * 0.07) solid #fff;
+}
+
+/* Unsicherheit: Die Karte atmet orange. */
+.card[data-uncertain='true'] .front,
+.card[data-uncertain='true'] .back {
+  animation: breathe 2.2s ease-in-out infinite;
+}
+
+.uncertainBadge {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-uncertain);
+  color: #1d0d00;
+  font-weight: 900;
+  font-size: 14px;
+  box-shadow: 0 0 0 2px var(--color-bg);
+  animation: badge-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--color-uncertain),
+      0 0 10px 2px var(--color-uncertain-glow),
+      0 6px 14px rgb(0 0 0 / 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px var(--color-uncertain),
+      0 0 28px 10px var(--color-uncertain-glow),
+      0 6px 14px rgb(0 0 0 / 0.35);
+  }
+}
+
+@keyframes badge-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+  }
+}

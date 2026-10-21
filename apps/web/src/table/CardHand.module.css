@@ -1,0 +1,65 @@
+.hand {
+  --visible-strip: calc(var(--hand-card-width) * 0.6);
+  display: flex;
+  justify-content: center;
+  /* Platz nach oben für die hervorgehobene Karte. */
+  padding: 72px 24px 28px;
+  max-width: 100%;
+}
+
+/* Die Klickfläche: nur der sichtbare Streifen, die oberste (letzte) Karte ganz. Sie bewegt sich nie. */
+.slot {
+  all: unset;
+  position: relative;
+  flex: none;
+  width: var(--visible-strip);
+  height: calc(var(--hand-card-width) * 1.4);
+  cursor: pointer;
+}
+
+.slot:last-child {
+  width: var(--hand-card-width);
+}
+
+/* Die Optik: bewegt sich frei, ist aber für die Maus durchsichtig. */
+.visual {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  border-radius: 10px;
+  transition: filter 0.2s;
+}
+
+.slot:focus-visible .visual {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 4px;
+}
+
+.slot[aria-pressed='true'] .visual {
+  filter: drop-shadow(0 0 14px rgb(232 184 79 / 0.85));
+}
+
+.hand[data-disabled='false'] .slot:hover .visual {
+  filter: drop-shadow(0 18px 24px rgb(0 0 0 / 0.55));
+}
+
+.hand[data-disabled='true'] .slot {
+  cursor: not-allowed;
+}
+
+.hand[data-disabled='true'] .visual {
+  filter: grayscale(0.6) brightness(0.65);
+}
+
+/* Auf schmalen Displays lässt sich die Hand seitlich wischen. */
+@media (max-width: 640px) {
+  .hand {
+    justify-content: flex-start;
+    padding-inline: 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+}

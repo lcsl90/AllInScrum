@@ -1,0 +1,26 @@
+.avatar {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  border-radius: 50%;
+  flex: none;
+  object-fit: cover;
+  box-shadow:
+    0 0 0 2px var(--color-avatar-ring),
+    0 6px 14px rgb(0 0 0 / 0.35);
+  user-select: none;
+}
+
+.initials {
+  display: inline-grid;
+  place-items: center;
+  background: linear-gradient(
+    145deg,
+    hsl(var(--avatar-hue) 70% 58%),
+    hsl(calc(var(--avatar-hue) + 30) 65% 38%)
+  );
+  color: #fff;
+  font-weight: 700;
+  font-size: calc(var(--avatar-size) * 0.38);
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+}
