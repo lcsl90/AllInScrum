@@ -63,10 +63,40 @@ klaren Fehlermeldung.
 | `MAX_PLAYERS_PER_SESSION`      | `16`                            | Obergrenze Spieler pro Tisch                                         |
 | `CARD_DECK`                    | `0,1,2,3,5,8,13,21,34,?,coffee` | Kommagetrennte Karten; `coffee` erscheint als Kaffeetasse            |
 | `TRUST_PROXY`                  | `false`                         | Client-Adresse aus `X-Forwarded-For` lesen (nur hinter einem Proxy)  |
+| `TLS_CERT_FILE`                | –                               | Zertifikat (PEM) – zusammen mit `TLS_KEY_FILE` schaltet es HTTPS ein |
+| `TLS_KEY_FILE`                 | –                               | Privater Schlüssel (PEM) zum Zertifikat                              |
 | `STATIC_DIR`                   | gebautes Frontend               | Verzeichnis mit `index.html` und `assets/`                           |
 
 Zahlenkarten fließen in den Durchschnitt ein, alle anderen Karten (`?`, `coffee` oder z. B.
 T-Shirt-Größen) nicht.
+
+### HTTPS
+
+Mit Zertifikat und Schlüssel spricht der Server selbst HTTPS – auf demselben Port und samt
+Echtzeitverbindung (`wss://`). Ohne die beiden Angaben bleibt es bei HTTP.
+
+Für Docker Compose die PEM-Dateien nach `./certs` legen (der Ordner ist von Git und vom Image-Build
+ausgeschlossen) und neben `docker-compose.yml` eine Datei `.env` anlegen:
+
+```dotenv
+TLS_CERT_FILE=/certs/cert.pem
+TLS_KEY_FILE=/certs/key.pem
+```
+
+Nach `docker compose up --build` ist AllInScrum unter <https://localhost:41400> erreichbar. Die
+`.env`-Datei ist der zuverlässigste Weg: Git Bash unter Windows verbiegt Pfade wie `/certs/…` auf
+der Kommandozeile.
+
+Für lokale Tests ohne Browserwarnung eignet sich [mkcert](https://github.com/FiloSottile/mkcert):
+
+```bash
+mkcert -install
+mkcert -cert-file certs/cert.pem -key-file certs/key.pem localhost 127.0.0.1 ::1
+```
+
+Ohne Docker genügt `TLS_CERT_FILE=… TLS_KEY_FILE=… npm start`. Der Server liest die Dateien beim
+Start – nach einer Zertifikatserneuerung also neu starten. Unter Linux muss der Schlüssel für den
+Container-Benutzer `node` (UID 1000) lesbar sein.
 
 ### Hinter einem Reverse Proxy
 

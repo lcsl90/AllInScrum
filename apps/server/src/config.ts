@@ -12,6 +12,13 @@ export interface AppConfig {
   readonly deck: readonly Card[];
   /** Hinter einem Reverse Proxy: Client-Adresse aus X-Forwarded-For lesen. */
   readonly trustProxy: boolean;
+  /** Zertifikat und Schlüssel (PEM-Dateien) – dann spricht der Server HTTPS, sonst HTTP. */
+  readonly tls: TlsFiles | null;
+}
+
+export interface TlsFiles {
+  readonly certFile: string;
+  readonly keyFile: string;
 }
 
 type Environment = Readonly<Record<string, string | undefined>>;
@@ -32,7 +39,24 @@ export function loadConfig(env: Environment): AppConfig {
     maxPlayersPerSession: number('MAX_PLAYERS_PER_SESSION', 16),
     deck: readDeck(env, 'CARD_DECK', DEFAULT_DECK),
     trustProxy: ['true', '1'].includes(env['TRUST_PROXY']?.trim().toLowerCase() ?? ''),
+    tls: readTls(env),
   };
+}
+
+/**
+ * HTTPS gibt es nur mit beiden Dateien – eine allein ist ein Konfigurationsfehler, kein stilles HTTP.
+ * Leere Werte gelten als nicht gesetzt (docker-compose reicht ungesetzte Variablen leer durch).
+ */
+function readTls(env: Environment): TlsFiles | null {
+  const certFile = env['TLS_CERT_FILE']?.trim();
+  const keyFile = env['TLS_KEY_FILE']?.trim();
+  if (!certFile && !keyFile) return null;
+  if (!certFile || !keyFile) {
+    throw new Error(
+      'Ungültige Konfiguration: Für HTTPS braucht es TLS_CERT_FILE und TLS_KEY_FILE (Pfade zu PEM-Dateien).',
+    );
+  }
+  return { certFile, keyFile };
 }
 
 /** Kommagetrennte Kartenwerte, z. B. "1,2,3,5,8,?". Mindestens zwei, keine doppelten, keine leeren. */

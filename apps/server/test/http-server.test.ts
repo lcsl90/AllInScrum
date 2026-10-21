@@ -1,5 +1,6 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import type { Server } from 'node:http';
+import { get as httpsGet } from 'node:https';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -64,3 +65,36 @@ describe('HTTP-Server ohne gebautes Frontend (Entwicklungsmodus)', () => {
     await new Promise((resolve) => server.close(resolve));
   });
 });
+
+describe('HTTP-Server mit Zertifikat', () => {
+  const tlsDir = join(import.meta.dirname, 'support', 'tls');
+
+  it('spricht HTTPS', async () => {
+    const cert = await readFile(join(tlsDir, 'test-cert.pem'));
+    const key = await readFile(join(tlsDir, 'test-key.pem'));
+    const server = createHttpServer({
+      staticDir: join(tmpdir(), 'gibt-es-nicht-allinscrum'),
+      tls: { cert, key },
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address() as AddressInfo;
+
+    const health = await getOverHttps(`https://127.0.0.1:${port}/healthz`, cert);
+
+    expect(health).toEqual({ status: 200, body: '{"status":"ok"}' });
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  });
+});
+
+/** GET über HTTPS, das nur dem übergebenen (selbst signierten) Zertifikat vertraut. */
+function getOverHttps(url: string, trusted: Buffer): Promise<{ status: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    httpsGet(url, { ca: trusted }, (response) => {
+      let body = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk: string) => (body += chunk));
+      response.on('end', () => resolve({ status: response.statusCode ?? 0, body }));
+    }).on('error', reject);
+  });
+}

@@ -14,6 +14,7 @@ describe('loadConfig', () => {
       maxPlayersPerSession: 16,
       deck: ['0', '1', '2', '3', '5', '8', '13', '21', '34', '?', COFFEE_CARD],
       trustProxy: false,
+      tls: null,
     });
   });
 
@@ -23,6 +24,24 @@ describe('loadConfig', () => {
     ['false', false],
   ])('vertraut dem Reverse Proxy bei TRUST_PROXY=%s → %s', (value, expected) => {
     expect(loadConfig({ TRUST_PROXY: value }).trustProxy).toBe(expected);
+  });
+
+  it('spricht HTTPS mit Zertifikat und Schlüssel aus der Umgebung', () => {
+    const config = loadConfig({ TLS_CERT_FILE: '/certs/cert.pem', TLS_KEY_FILE: '/certs/key.pem' });
+
+    expect(config.tls).toEqual({ certFile: '/certs/cert.pem', keyFile: '/certs/key.pem' });
+  });
+
+  it('bleibt bei leeren Zertifikatsangaben bei HTTP', () => {
+    expect(loadConfig({ TLS_CERT_FILE: '', TLS_KEY_FILE: ' ' }).tls).toBeNull();
+  });
+
+  it.each([
+    { TLS_CERT_FILE: '/certs/cert.pem' },
+    { TLS_KEY_FILE: '/certs/key.pem' },
+    { TLS_CERT_FILE: ' ', TLS_KEY_FILE: '/certs/key.pem' },
+  ])('verlangt für HTTPS Zertifikat und Schlüssel gemeinsam: %j', (env) => {
+    expect(() => loadConfig(env)).toThrow(/TLS_CERT_FILE und TLS_KEY_FILE/);
   });
 
   it('übernimmt Werte aus der Umgebung', () => {

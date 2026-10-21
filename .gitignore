@@ -18,3 +18,6 @@ playwright/.cache/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Zertifikate und Schlüssel für HTTPS – niemals einchecken
+/certs/

@@ -1,24 +1,34 @@
 import { existsSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import { createServer as createHttpsServer } from 'node:https';
 import sirv from 'sirv';
 
 export interface HttpServerOptions {
   /** Verzeichnis mit dem gebauten Frontend (index.html + assets). */
   readonly staticDir: string;
+  /** Zertifikat und Schlüssel (PEM) – dann spricht der Server HTTPS, sonst HTTP. */
+  readonly tls?: TlsCredentials | undefined;
 }
 
-/** HTTP-Server für Healthcheck und Frontend. Socket.IO hängt sich zusätzlich an diesen Server. */
+export interface TlsCredentials {
+  readonly cert: Buffer;
+  readonly key: Buffer;
+}
+
+/** Server für Healthcheck und Frontend. Socket.IO hängt sich zusätzlich an diesen Server. */
 export function createHttpServer(options: HttpServerOptions): Server {
   const serveApp = createAppHandler(options.staticDir);
 
-  return createServer((request, response) => {
+  const handle: RequestHandler = (request, response) => {
     if (request.url === '/healthz') {
       response.writeHead(200, { 'content-type': 'application/json' });
       response.end(JSON.stringify({ status: 'ok' }));
       return;
     }
     serveApp(request, response);
-  });
+  };
+
+  return options.tls ? createHttpsServer(options.tls, handle) : createServer(handle);
 }
 
 type RequestHandler = (request: IncomingMessage, response: ServerResponse) => void;

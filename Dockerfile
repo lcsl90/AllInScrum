@@ -26,6 +26,8 @@ COPY --from=build /app/apps/web/dist/ ./public/
 
 USER node
 EXPOSE 41400
+# Prüft nur, ob der Server antwortet – bei HTTPS ohne Zertifikatsprüfung, denn ein Zertifikat für
+# die eigene Domain passt nie zu 127.0.0.1.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:' + process.env.PORT + '/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+  CMD NODE_TLS_REJECT_UNAUTHORIZED=0 node -e "const scheme = process.env.TLS_CERT_FILE ? 'https' : 'http'; fetch(scheme + '://127.0.0.1:' + process.env.PORT + '/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
 CMD ["node", "--enable-source-maps", "main.js"]

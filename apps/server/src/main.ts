@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ClientToServerEvents, ServerToClientEvents } from '@allinscrum/protocol';
@@ -34,7 +35,12 @@ const registry = new SessionRegistry({
 
 // Sowohl src/main.ts (Entwicklung) als auch dist/main.js (Build) liegen zwei Ebenen unter apps/.
 const defaultStaticDir = resolve(dirname(fileURLToPath(import.meta.url)), '../../web/dist');
-const httpServer = createHttpServer({ staticDir: process.env['STATIC_DIR'] ?? defaultStaticDir });
+const httpServer = createHttpServer({
+  staticDir: process.env['STATIC_DIR'] ?? defaultStaticDir,
+  tls: config.tls
+    ? { cert: readFileSync(config.tls.certFile), key: readFileSync(config.tls.keyFile) }
+    : undefined,
+});
 
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   serveClient: false,
@@ -53,7 +59,8 @@ const gateway = attachRealtimeGateway(io, {
 const sweepTimer = setInterval(() => void gateway.sweep(), SWEEP_INTERVAL_MS);
 
 httpServer.listen(config.port, config.host, () => {
-  console.log(`AllInScrum läuft auf http://${config.host}:${config.port}`);
+  const scheme = config.tls ? 'https' : 'http';
+  console.log(`AllInScrum läuft auf ${scheme}://${config.host}:${config.port}`);
 });
 
 function shutdown(signal: string): void {
