@@ -1,0 +1,197 @@
+.room {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom));
+  gap: 8px;
+}
+
+/* ---------- Kopfzeile ---------- */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.titleGroup {
+  display: grid;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roundLabel {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.connection {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgb(239 91 91 / 0.15);
+  color: #ffb4b4;
+  font-size: 0.8rem;
+}
+
+.connection::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+/* ---------- Der Tisch ---------- */
+
+.tableArea {
+  display: grid;
+  place-items: center;
+  padding: 48px 56px;
+  min-height: 0;
+}
+
+.table {
+  position: relative;
+  width: min(100%, 1000px, calc((100dvh - 330px) * 2));
+  min-width: 280px;
+  aspect-ratio: 2 / 1;
+}
+
+.rail {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgb(255 255 255 / 0.22), transparent 55%),
+    linear-gradient(180deg, var(--color-rail-light), var(--color-rail) 60%, #2c170a);
+  box-shadow:
+    0 40px 80px rgb(0 0 0 / 0.6),
+    0 0 0 2px rgb(0 0 0 / 0.5),
+    inset 0 2px 1px rgb(255 255 255 / 0.25),
+    inset 0 -6px 12px rgb(0 0 0 / 0.5);
+}
+
+.felt {
+  position: absolute;
+  inset: clamp(14px, 3.2%, 30px);
+  border-radius: 50%;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgb(255 255 255 / 0.16), transparent 60%),
+    radial-gradient(ellipse at 50% 50%, var(--color-felt) 0%, var(--color-felt-dark) 100%);
+  box-shadow:
+    inset 0 0 0 3px var(--color-rail-trim),
+    inset 0 0 0 5px rgb(0 0 0 / 0.35),
+    inset 0 18px 40px rgb(0 0 0 / 0.55);
+}
+
+/* Feine Filzstruktur */
+.felt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  background-image: repeating-radial-gradient(
+    circle at 30% 30%,
+    rgb(0 0 0 / 0.25) 0 1px,
+    transparent 1px 3px
+  );
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.feltLine {
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  border: 2px solid var(--color-felt-line);
+}
+
+.feltLogo {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  translate: -50% 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(0.9rem, 2.2vw, 1.4rem);
+  letter-spacing: 0.12em;
+  color: rgb(255 255 255 / 0.12);
+  white-space: nowrap;
+  user-select: none;
+  transition: opacity 0.6s;
+}
+
+.feltLogo[data-hidden='true'] {
+  opacity: 0;
+}
+
+.seats {
+  position: absolute;
+  inset: 0;
+}
+
+@media (max-width: 520px) {
+  .leaveLabel {
+    display: none;
+  }
+}
+
+/* ---------- Handkarten ---------- */
+
+.sittingOut {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.handArea {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-height: 140px;
+}
+
+@media (max-width: 640px) {
+  .tableArea {
+    padding: 40px 34px;
+  }
+
+  .table {
+    aspect-ratio: 1 / 1.25;
+    width: min(100%, 420px);
+  }
+
+  .feltLogo {
+    top: 14%;
+  }
+}

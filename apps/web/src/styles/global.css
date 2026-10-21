@@ -1,0 +1,104 @@
+/*
+ * Design-Tokens. Wer das Erscheinungsbild anpassen möchte (Filzfarbe, Akzent, Kartenrücken …),
+ * ändert nur diese Variablen.
+ */
+:root {
+  color-scheme: dark;
+
+  --color-bg: #06110d;
+  --color-bg-glow: #12382a;
+  --color-surface: rgb(255 255 255 / 0.06);
+  --color-surface-strong: rgb(255 255 255 / 0.1);
+  --color-border: rgb(255 255 255 / 0.12);
+  --color-text: #f4efe4;
+  --color-text-muted: #a7b6ae;
+  --color-accent: #e8b84f;
+  --color-accent-strong: #ffd277;
+  --color-accent-ink: #2a1c02;
+  --color-danger: #ef5b5b;
+  --color-success: #4cd39b;
+  --color-uncertain: #ff8a1f;
+  --color-uncertain-glow: rgb(255 138 31 / 0.65);
+
+  --color-felt: #1f7a52;
+  --color-felt-dark: #0d3d29;
+  --color-felt-line: rgb(255 255 255 / 0.14);
+  --color-rail: #4a2a12;
+  --color-rail-light: #8b5a2b;
+  --color-rail-trim: #d9a441;
+
+  --color-card: #fffdf6;
+  --color-card-ink: #17171c;
+  --color-card-red: #c0262d;
+  --color-card-back: #9e1f2a;
+  --color-card-back-pattern: #c9353f;
+  --color-avatar-ring: rgb(255 255 255 / 0.85);
+
+  --table-card-width: clamp(38px, 4.4vw, 56px);
+  --hand-card-width: clamp(54px, 7.5vw, 84px);
+
+  --radius-small: 8px;
+  --radius: 14px;
+  --radius-large: 22px;
+  --shadow-panel: 0 30px 80px rgb(0 0 0 / 0.45), 0 2px 0 rgb(255 255 255 / 0.04) inset;
+
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 700px at 50% 35%, var(--color-bg-glow), transparent 70%),
+    var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 3px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

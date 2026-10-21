@@ -1,0 +1,80 @@
+.result {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.average {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.18em;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.6vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-accent-strong);
+  text-shadow:
+    0 0 30px rgb(232 184 79 / 0.55),
+    0 2px 0 rgb(0 0 0 / 0.35);
+}
+
+.averageSign {
+  font-size: 0.7em;
+  opacity: 0.85;
+}
+
+.stacks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(10px, 2vw, 22px);
+}
+
+.stack {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+/* Ein Stapel: jede weitere Karte liegt leicht versetzt und gedreht obenauf. */
+.pile {
+  position: relative;
+  width: calc(var(--table-card-width) + (var(--pile-size) - 1) * 5px);
+  aspect-ratio: auto;
+  height: calc(var(--table-card-width) * 1.4 + (var(--pile-size) - 1) * 4px);
+}
+
+.pileCard {
+  position: absolute;
+  left: calc(var(--position) * 5px);
+  bottom: calc(var(--position) * 4px);
+  rotate: calc((var(--position) - 1) * 4deg);
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.3));
+}
+
+.owners {
+  display: flex;
+}
+
+.owner {
+  margin-left: -6px;
+  border-radius: 50%;
+}
+
+.owner:first-child {
+  margin-left: 0;
+}
+
+.consensus {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-success);
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 640px) {
+  .stacks {
+    gap: 8px;
+  }
+}

@@ -1,0 +1,72 @@
+.badge {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: 999px;
+  border: 1px solid rgb(232 184 79 / 0.45);
+  background: rgb(232 184 79 / 0.1);
+  box-shadow: 0 0 24px rgb(232 184 79 / 0.12);
+}
+
+.code,
+.link {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.code {
+  padding: 6px 14px;
+  border-radius: 999px 0 0 999px;
+  font-family: ui-monospace, 'Cascadia Code', Menlo, monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+  color: var(--color-accent-strong);
+}
+
+.link {
+  padding: 0 12px;
+  border-left: 1px solid rgb(232 184 79 / 0.3);
+  border-radius: 0 999px 999px 0;
+  color: var(--color-accent);
+}
+
+.code:hover,
+.link:hover {
+  background: rgb(232 184 79 / 0.18);
+}
+
+.code:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+.badge[data-large='true'] .code {
+  padding: 10px 20px;
+  font-size: clamp(1.3rem, 3vw, 2.2rem);
+  letter-spacing: 0.2em;
+}
+
+.badge[data-large='true'] .link {
+  padding: 0 18px;
+}
+
+.copied {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  translate: -50% 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--color-success);
+  color: #032015;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}

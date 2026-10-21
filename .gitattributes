@@ -1,0 +1,5 @@
+# Einheitlich LF – auch unter Windows (passt zu .editorconfig und zum Docker-Image).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.webp binary

@@ -1,0 +1,22 @@
+{
+  "name": "@allinscrum/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Realtime-Server: In-Memory-Sessions, Spiellogik und Auslieferung des Web-Frontends.",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/main.ts",
+    "build": "node build.mjs",
+    "start": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@allinscrum/protocol": "*",
+    "sirv": "^3.0.2",
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "socket.io-client": "^4.8.4"
+  }
+}

@@ -1,0 +1,84 @@
+.stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 4;
+  translate: -50% -50%;
+  width: min(46%, 340px);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+/* Nach dem Aufdecken brauchen die Kartenstapel Platz. */
+.stage[data-phase='revealed'] {
+  width: min(72%, 560px);
+}
+
+.hint {
+  margin: 0;
+  color: rgb(255 255 255 / 0.78);
+  font-size: 0.95rem;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
+}
+
+.progress {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.progressLabel {
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.22);
+  transition:
+    background 0.3s,
+    transform 0.3s var(--ease-out);
+}
+
+.dot[data-filled='true'] {
+  background: var(--color-accent);
+  transform: scale(1.15);
+  box-shadow: 0 0 10px rgb(232 184 79 / 0.6);
+}
+
+.invite {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: var(--radius-large);
+  background: rgb(0 0 0 / 0.35);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  backdrop-filter: blur(4px);
+}
+
+.inviteTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+}
+
+@media (max-width: 640px) {
+  .stage {
+    width: 64%;
+    gap: 6px;
+  }
+
+  .stage[data-phase='revealed'] {
+    width: 86%;
+  }
+}
