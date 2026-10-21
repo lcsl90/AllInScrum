@@ -1,0 +1,44 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 8px;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  background: rgb(255 255 255 / 0.06);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.25s,
+    border-color 0.25s,
+    color 0.25s;
+}
+
+.toggle:hover {
+  color: var(--color-text);
+  background: rgb(255 255 255 / 0.1);
+}
+
+.mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 0.12);
+  transition:
+    background 0.25s,
+    color 0.25s;
+}
+
+.toggle[aria-pressed='true'] {
+  border-color: var(--color-accent);
+  background: rgb(232 184 79 / 0.14);
+  color: var(--color-accent-strong);
+}
+
+.toggle[aria-pressed='true'] .mark {
+  background: var(--color-accent);
+  color: #1d1400;
+}

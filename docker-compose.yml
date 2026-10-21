@@ -1,0 +1,22 @@
+# Startet AllInScrum als einzelnen Container: docker compose up --build
+# Erreichbar unter http://localhost:3000 (anderer Port: HOST_PORT=8080 docker compose up --build)
+services:
+  allinscrum:
+    build: .
+    image: allinscrum:latest
+    ports:
+      - '${HOST_PORT:-3000}:3000'
+    # Alle Werte sind optional – hier stehen die Standardwerte.
+    environment:
+      SESSION_IDLE_TIMEOUT_MINUTES: 60 # Sessions ohne Aktivität werden danach gelöscht
+      ADMIN_HANDOVER_SECONDS: 30 # so lange darf der Admin getrennt sein, bevor die Rolle wandert
+      OFFLINE_REMOVAL_MINUTES: 5 # so lange bleibt ein getrennter Spieler am Tisch
+      MAX_SESSIONS: 200
+      MAX_PLAYERS_PER_SESSION: 16
+      TRUST_PROXY: 'false' # hinter einem Reverse Proxy auf "true" setzen (X-Forwarded-For)
+      # CARD_DECK: '0,1,2,3,5,8,13,21,34,?,coffee' # kommagetrennt; "coffee" erscheint als Tasse
+    restart: unless-stopped
+    # Alles lebt im Arbeitsspeicher – der Container braucht weder Schreibrechte noch Privilegien.
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']

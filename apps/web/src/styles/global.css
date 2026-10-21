@@ -63,8 +63,7 @@ body,
 body {
   margin: 0;
   background:
-    radial-gradient(1200px 700px at 50% 35%, var(--color-bg-glow), transparent 70%),
-    var(--color-bg);
+    radial-gradient(1200px 700px at 50% 35%, var(--color-bg-glow), transparent 70%), var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body);
   font-size: 16px;

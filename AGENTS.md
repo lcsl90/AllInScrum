@@ -33,12 +33,12 @@ Test → Implementierung → nächster Test.
 
 ### Testpyramide
 
-| Ebene                     | Wo                                     | Werkzeug                     |
-| ------------------------- | -------------------------------------- | ---------------------------- |
-| Domäne (schnell, viele)   | `apps/server/src/domain/**/*.test.ts`  | Vitest                       |
-| Protokoll-Integration     | `apps/server/test/**/*.test.ts`        | Vitest + echter Socket.IO    |
-| UI-Komponenten / Logik    | `apps/web/src/**/*.test.ts(x)`         | Vitest + Testing Library     |
-| End-to-End (wenige)       | `e2e/**/*.spec.ts`                     | Playwright                   |
+| Ebene                   | Wo                                    | Werkzeug                  |
+| ----------------------- | ------------------------------------- | ------------------------- |
+| Domäne (schnell, viele) | `apps/server/src/domain/**/*.test.ts` | Vitest                    |
+| Protokoll-Integration   | `apps/server/test/**/*.test.ts`       | Vitest + echter Socket.IO |
+| UI-Komponenten / Logik  | `apps/web/src/**/*.test.ts(x)`        | Vitest + Testing Library  |
+| End-to-End (wenige)     | `e2e/**/*.spec.ts`                    | Playwright                |
 
 ## Architektur
 
@@ -72,6 +72,8 @@ apps/web            React + Vite + Motion
   das Gateway übersetzt sie in `{ ok: false, error }`-Acks.
 - Kein Persistenz-Layer. Alles lebt im Speicher und darf beim Neustart verloren gehen.
 - Animationen respektieren `prefers-reduced-motion`.
+- Keine Emojis – weder in UI-Texten noch als Kartenwerte. Symbole sind schlanke SVG-Icons aus
+  `apps/web/src/ui/icons.tsx` (z. B. die Kaffeekarte `COFFEE_CARD` als Tasse).
 - Clean Code: kleine Funktionen, sprechende Namen, keine toten Pfade, keine auskommentierten
   Codeblöcke, keine spekulativen Features.
 
@@ -79,7 +81,7 @@ apps/web            React + Vite + Motion
 
 ```bash
 npm install          # einmalig
-npm run dev          # Server (Port 3000) + Vite (Port 5173) mit Hot Reload
+npm run dev          # Server (Port 3000, belegt → freier Port) + Vite (Port 5173) mit Hot Reload
 npm test             # alle Unit- und Integrationstests
 npm run test:watch   # TDD-Modus
 npm run test:e2e     # Playwright (vorher: npx playwright install chromium)

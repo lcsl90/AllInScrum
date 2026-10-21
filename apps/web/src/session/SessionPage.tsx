@@ -1,3 +1,4 @@
+import type { ErrorCode } from '@allinscrum/protocol';
 import { motion } from 'motion/react';
 import { useProfile } from '../profile/ProfileContext.tsx';
 import { ProfileEditor } from '../profile/ProfileEditor.tsx';
@@ -15,7 +16,12 @@ export function SessionPage(props: { joinCode: string }) {
     case 'needs-profile':
       return <NameGate onJoin={() => void join()} />;
     case 'failed':
-      return <SessionNotice title="Kein Platz frei" message={errorMessage(connection.error)} />;
+      return (
+        <SessionNotice
+          title={failureTitle(connection.error)}
+          message={errorMessage(connection.error)}
+        />
+      );
     case 'closed':
       return (
         <SessionNotice
@@ -29,6 +35,12 @@ export function SessionPage(props: { joinCode: string }) {
     case 'joining':
       return <TakingSeat />;
   }
+}
+
+function failureTitle(error: ErrorCode): string {
+  if (error === 'session-not-found') return 'Tisch nicht gefunden';
+  if (error === 'session-full') return 'Kein Platz frei';
+  return 'Beitritt nicht möglich';
 }
 
 /** Wer per Link kommt und noch keinen Namen gespeichert hat, stellt sich erst kurz vor. */

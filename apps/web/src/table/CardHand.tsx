@@ -1,7 +1,8 @@
 import type { Card } from '@allinscrum/protocol';
 import { motion, type Variants } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import styles from './CardHand.module.css';
+import { cardName } from './card-name.ts';
 import { PlayingCard } from './PlayingCard.tsx';
 
 interface CardHandProps {
@@ -15,12 +16,17 @@ interface CardHandProps {
   readonly onSelect: (card: Card | null) => void;
 }
 
+/** Die Karte unter der Maus hebt sich so weit an und wird so viel größer. */
+const SPOTLIGHT_LIFT_PX = 56;
+const SPOTLIGHT_SCALE = 1.32;
+
 /**
  * Die eigenen Karten, aufgefächert wie auf der Hand.
  *
  * Jede Karte besteht aus einer festen Klickfläche (dem sichtbaren Streifen) und der Kartenoptik
  * darüber, die sich bewegt. So wandert die Klickfläche beim Hervorheben nicht unter der Maus weg –
- * kein Flackern, und man trifft immer die Karte, die man sieht.
+ * kein Flackern. Nur die hervorgehobene Karte wächst mit ihrer Optik mit, damit man sie auch an
+ * ihrem angehobenen Teil trifft.
  */
 export function CardHand({ deck, selected, round, disabled, canRetract, onSelect }: CardHandProps) {
   const dealing = useDealing(round);
@@ -30,8 +36,19 @@ export function CardHand({ deck, selected, round, disabled, canRetract, onSelect
     else if (canRetract) onSelect(null);
   }
 
+  const spotlight = {
+    '--spotlight-lift': `${SPOTLIGHT_LIFT_PX}px`,
+    '--spotlight-scale': SPOTLIGHT_SCALE,
+  } as CSSProperties;
+
   return (
-    <div className={styles.hand} role="group" aria-label="Deine Karten" data-disabled={disabled}>
+    <div
+      className={styles.hand}
+      style={spotlight}
+      role="group"
+      aria-label="Deine Karten"
+      data-disabled={disabled}
+    >
       {deck.map((card, index) => {
         const isSelected = card === selected;
         return (
@@ -39,7 +56,7 @@ export function CardHand({ deck, selected, round, disabled, canRetract, onSelect
             key={`${round}-${card}`}
             type="button"
             className={styles.slot}
-            aria-label={`Karte ${card}`}
+            aria-label={`Karte ${cardName(card)}`}
             aria-pressed={isSelected}
             disabled={disabled}
             initial="dealing"
@@ -90,10 +107,10 @@ const cardVariants: Variants = {
   }),
   // Die Karte unter der Maus (oder im Tastaturfokus) kommt gerade, groß und ganz nach vorn.
   spotlight: {
-    y: -56,
+    y: -SPOTLIGHT_LIFT_PX,
     opacity: 1,
     rotate: 0,
-    scale: 1.32,
+    scale: SPOTLIGHT_SCALE,
     zIndex: 20,
     transition: { type: 'spring', stiffness: 420, damping: 26 },
   },

@@ -44,7 +44,9 @@ export function CenterStage({ view, commands }: CenterStageProps) {
                 )}
               </>
             ) : (
-              <p className={styles.hint}>Warte, bis {adminName(view.players)} die Runde startet …</p>
+              <p className={styles.hint}>
+                Warte, bis {adminName(view.players)} die Runde startet …
+              </p>
             )}
           </motion.div>
         )}
@@ -68,7 +70,7 @@ export function CenterStage({ view, commands }: CenterStageProps) {
                 Nächste Runde
               </Button>
             ) : (
-              <p className={styles.hint}>Diskutiert die Ausreißer!</p>
+              !view.result.consensus && <p className={styles.hint}>Diskutiert die Ausreißer!</p>
             )}
           </motion.div>
         )}

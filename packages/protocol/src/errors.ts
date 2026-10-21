@@ -15,6 +15,7 @@ export const ERROR_CODES = [
   'round-already-active',
   'invalid-card',
   'player-ignored',
+  'player-spectating',
   'votes-missing',
   'internal',
   /** Nur clientseitig: Der Server hat nicht rechtzeitig geantwortet. */

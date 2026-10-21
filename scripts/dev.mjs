@@ -1,11 +1,13 @@
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:net';
 
 /*
  * Startet Realtime-Server und Vite gemeinsam. PORT gilt für die Oberfläche (Vite),
  * der Server läuft intern auf ALLINSCRUM_SERVER_PORT – Vite reicht /socket.io dorthin durch.
+ * Ohne Vorgabe nimmt der Server Port 3000 oder, falls der belegt ist, einen freien.
  */
 const webPort = process.env.PORT ?? '5173';
-const serverPort = process.env.ALLINSCRUM_SERVER_PORT ?? '3000';
+const serverPort = process.env.ALLINSCRUM_SERVER_PORT ?? String(await availablePort(3000));
 
 const processes = [
   start('server', ['run', 'dev', '-w', '@allinscrum/server'], { PORT: serverPort }),
@@ -35,6 +37,20 @@ function start(name, args, env) {
     process.exit(code ?? 0);
   });
   return child;
+}
+
+/** Der Wunschport, wenn er frei ist – sonst ein beliebiger freier (z. B. neben einem zweiten Dev-Server). */
+function availablePort(preferred) {
+  const tryListen = (port) =>
+    new Promise((resolve, reject) => {
+      const probe = createServer();
+      probe.once('error', reject);
+      probe.listen(port, '0.0.0.0', () => {
+        const { port: bound } = probe.address();
+        probe.close(() => resolve(bound));
+      });
+    });
+  return tryListen(preferred).catch(() => tryListen(0));
 }
 
 for (const signal of ['SIGINT', 'SIGTERM']) {

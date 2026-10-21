@@ -4,13 +4,14 @@ import type { Card, RoundResult } from '@allinscrum/protocol';
 export function summarizeRound(cards: readonly Card[], deck: readonly Card[]): RoundResult {
   const mean = meanOf(cards.map(numericValue).filter((value) => value !== null));
   return {
-    average: mean === null ? null : nearestCard(mean, deck),
+    average: mean,
+    suggestedCard: mean === null ? null : nearestCard(mean, deck),
     consensus: cards.length >= 2 && new Set(cards).size === 1,
   };
 }
 
 /**
- * Der Durchschnitt wird als Karte aus dem Deck angegeben – bei Fibonacci gibt es keine 6.
+ * Der Vorschlag ist immer eine Karte aus dem Deck – bei Fibonacci gibt es keine 6.
  * Bei Gleichstand gewinnt die größere Karte: Lieber vorsichtig schätzen.
  */
 function nearestCard(mean: number, deck: readonly Card[]): Card | null {
@@ -24,7 +25,7 @@ function nearestCard(mean: number, deck: readonly Card[]): Card | null {
   return nearest?.card ?? null;
 }
 
-/** Zahlenkarten liefern ihren Wert, Sonderkarten wie "?" oder "☕" liefern null. */
+/** Zahlenkarten liefern ihren Wert, Sonderkarten wie "?" oder die Kaffeekarte liefern null. */
 function numericValue(card: Card): number | null {
   const value = Number(card);
   return card.trim() !== '' && Number.isFinite(value) ? value : null;

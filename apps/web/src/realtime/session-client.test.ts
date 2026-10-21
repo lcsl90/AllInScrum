@@ -24,7 +24,9 @@ describe('SessionClient gegen den echten Server', () => {
   });
 
   function connectClient(): SessionClient {
-    const client = createSessionClient(io(server.url, { transports: ['websocket'], forceNew: true }));
+    const client = createSessionClient(
+      io(server.url, { transports: ['websocket'], forceNew: true }),
+    );
     clients.push(client);
     return client;
   }
@@ -48,6 +50,19 @@ describe('SessionClient gegen den echten Server', () => {
     expect(joined.ok).toBe(true);
     await eventually(() => guestViews.at(-1)?.players.length === 2);
     expect(guestViews.at(-1)?.joinCode).toBe(created.data.joinCode);
+  });
+
+  it('nimmt sich als Zuschauer aus der Schätzung', async () => {
+    const host = connectClient();
+    const hostViews: SessionView[] = [];
+    host.onState((view) => hostViews.push(view));
+    await host.createSession({
+      sessionName: 'Sprint 42',
+      profile: { name: 'Alice', avatar: null },
+    });
+
+    expect(await host.setSpectating(true)).toEqual({ ok: true, data: null });
+    await eventually(() => hostViews.at(-1)?.players[0]?.isSpectator === true);
   });
 
   it('meldet einen nicht erreichbaren Server, statt ewig zu warten', async () => {

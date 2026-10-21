@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { FakeClock, minutes, seconds } from '../../test/support/fake-clock.ts';
 import { DEFAULT_DECK } from '../domain/deck.ts';
-import { type OpenSessionCommand, SessionRegistry, type RegistrySettings } from './session-registry.ts';
+import {
+  type OpenSessionCommand,
+  SessionRegistry,
+  type RegistrySettings,
+} from './session-registry.ts';
 
 function createRegistry(overrides: Partial<RegistrySettings> = {}) {
   return new SessionRegistry({

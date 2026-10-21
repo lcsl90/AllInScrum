@@ -177,8 +177,16 @@
 .handArea {
   display: grid;
   justify-items: center;
+  align-content: end;
   gap: 10px;
   min-height: 140px;
+}
+
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
 @media (max-width: 640px) {
@@ -186,8 +194,9 @@
     padding: 40px 34px;
   }
 
+  /* Hochkant und lang genug, dass das Ergebnis in der Mitte zwischen die Plätze passt. */
   .table {
-    aspect-ratio: 1 / 1.25;
+    aspect-ratio: 1 / 1.55;
     width: min(100%, 420px);
   }
 

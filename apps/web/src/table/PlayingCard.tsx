@@ -1,5 +1,7 @@
-import type { Card } from '@allinscrum/protocol';
+import { type Card, COFFEE_CARD } from '@allinscrum/protocol';
 import { motion } from 'motion/react';
+import { CoffeeIcon } from '../ui/icons.tsx';
+import { cardName } from './card-name.ts';
 import styles from './PlayingCard.module.css';
 
 interface PlayingCardProps {
@@ -35,14 +37,14 @@ export function PlayingCard({
       className={styles.card}
       data-size={size}
       data-uncertain={uncertain}
-      data-long={(value?.length ?? 0) > 1}
+      data-long={hasLongText(value)}
       role="img"
       aria-label={owner ? `${owner}: ${description}` : description}
     >
       {replaced !== null && (
         <motion.div
           className={styles.replaced}
-          data-long={replaced.length > 1}
+          data-long={hasLongText(replaced)}
           initial={{ rotate: 0, x: 0, y: 0 }}
           animate={{ rotate: -18, x: '-34%', y: '-10%' }}
           transition={{ type: 'spring', stiffness: 220, damping: 16 }}
@@ -72,13 +74,19 @@ export function PlayingCard({
 }
 
 function Face({ value }: { value: Card | null }) {
+  const face = value === COFFEE_CARD ? <CoffeeIcon /> : value;
   return (
     <>
-      <span className={styles.corner}>{value}</span>
-      <span className={styles.value}>{value}</span>
-      <span className={`${styles.corner} ${styles.cornerBottom}`}>{value}</span>
+      <span className={styles.corner}>{face}</span>
+      <span className={styles.value}>{face}</span>
+      <span className={`${styles.corner} ${styles.cornerBottom}`}>{face}</span>
     </>
   );
+}
+
+/** Mehrstellige Werte wie "13" brauchen eine kleinere Schrift – Symbole nicht. */
+function hasLongText(value: Card | null): boolean {
+  return value !== null && value !== COFFEE_CARD && value.length > 1;
 }
 
 interface Description {
@@ -93,8 +101,12 @@ function describe({ value, faceUp, waiting, uncertain, replaced }: Description):
   const face = waiting
     ? 'noch keine Karte gelegt'
     : faceUp && value !== null
-      ? `Karte ${value}`
+      ? `Karte ${cardName(value)}`
       : 'verdeckte Karte';
-  const details = [face, replaced !== null && `getauscht von ${replaced}`, uncertain && 'unsicher'];
+  const details = [
+    face,
+    replaced !== null && `getauscht von ${cardName(replaced)}`,
+    uncertain && 'unsicher',
+  ];
   return details.filter(Boolean).join(', ');
 }

@@ -31,23 +31,26 @@ export function useSessionConnection(joinCode: string) {
   const joinStarted = useRef(false);
 
   /** `quietly`: der Tisch bleibt sichtbar, während im Hintergrund neu beigetreten wird. */
-  const join = useCallback(async ({ quietly = false } = {}) => {
-    joinStarted.current = true;
-    if (!quietly) setConnection({ status: 'joining' });
-    const response = await client.joinSession({
-      joinCode,
-      profile: profileRef.current,
-      resumeToken: resumeTokenFor(joinCode),
-    });
-    if (!response.ok) {
-      setConnection({ status: 'failed', error: response.error });
-      return;
-    }
-    rememberMembership(joinCode, response.data.resumeToken);
-    setConnection((current) =>
-      current.status === 'seated' ? current : { status: 'seated', view: null },
-    );
-  }, [client, joinCode]);
+  const join = useCallback(
+    async ({ quietly = false } = {}) => {
+      joinStarted.current = true;
+      if (!quietly) setConnection({ status: 'joining' });
+      const response = await client.joinSession({
+        joinCode,
+        profile: profileRef.current,
+        resumeToken: resumeTokenFor(joinCode),
+      });
+      if (!response.ok) {
+        setConnection({ status: 'failed', error: response.error });
+        return;
+      }
+      rememberMembership(joinCode, response.data.resumeToken);
+      setConnection((current) =>
+        current.status === 'seated' ? current : { status: 'seated', view: null },
+      );
+    },
+    [client, joinCode],
+  );
 
   useEffect(() => client.onState((view) => setConnection({ status: 'seated', view })), [client]);
 

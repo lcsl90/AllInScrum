@@ -59,6 +59,8 @@ export class Session {
   private readonly maxPlayers: number;
   private readonly clock: Clock;
   private readonly players = new Map<string, Player>();
+  /** Wer nur zuschaut, setzt jede Runde aus – bis er selbst wieder einsteigt. */
+  private readonly spectators = new Set<string>();
   private adminId: string | null = null;
   private round: Round | null = null;
   private lastActivityAt: number;
@@ -124,7 +126,18 @@ export class Session {
 
   startRound(by: string): void {
     throwIfViolated(this.startRoundViolation(by));
-    this.round = new Round((this.round?.number ?? 0) + 1, this.deck);
+    const round = new Round((this.round?.number ?? 0) + 1, this.deck);
+    this.spectators.forEach((playerId) => round.ignore(playerId, true));
+    this.round = round;
+    this.touch();
+  }
+
+  /** Wer nur moderiert oder zuschaut, nimmt sich selbst aus der Schätzung – und kann jederzeit zurück. */
+  setSpectating(playerId: string, spectating: boolean): void {
+    this.assertMember(playerId);
+    if (spectating) this.spectators.add(playerId);
+    else this.spectators.delete(playerId);
+    if (this.round?.isVoting) this.round.ignore(playerId, spectating);
     this.touch();
   }
 
@@ -145,6 +158,7 @@ export class Session {
   ignore(by: string, playerId: string, ignored: boolean): void {
     this.assertAdmin(by);
     this.assertPlayerExists(playerId);
+    if (this.spectators.has(playerId)) throw new DomainError('player-spectating');
     this.activeRound().ignore(playerId, ignored);
     this.touch();
   }
@@ -190,6 +204,7 @@ export class Session {
 
   private removePlayer(playerId: string): void {
     this.players.delete(playerId);
+    this.spectators.delete(playerId);
     this.round?.forget(playerId);
     if (playerId === this.adminId) {
       this.adminId = this.longestPresentOnlinePlayerId() ?? this.longestPresentPlayerId();
@@ -251,7 +266,8 @@ export class Session {
   private startRoundViolation(by: string): ErrorCode | null {
     if (by !== this.adminId) return 'not-admin';
     if (this.phase === 'voting') return 'round-already-active';
-    if (this.players.size < MIN_PLAYERS_PER_ROUND) return 'not-enough-players';
+    const estimators = this.players.size - this.spectators.size;
+    if (estimators < MIN_PLAYERS_PER_ROUND) return 'not-enough-players';
     return null;
   }
 
@@ -269,9 +285,11 @@ export class Session {
       avatar: player.avatar,
       isAdmin: player.id === this.adminId,
       isOnline: player.offlineSince === null,
+      isSpectator: this.spectators.has(player.id),
       status: this.round?.statusOf(player.id) ?? 'pending',
       uncertain: this.round?.isUncertain(player.id) ?? false,
       card: this.round?.cardVisibleTo(viewerId, player.id) ?? null,
+      cardOpen: this.round?.isCardOpen(player.id) ?? false,
       replacedCard: this.round?.replacedCardOf(player.id) ?? null,
     };
   }

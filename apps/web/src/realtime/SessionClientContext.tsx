@@ -5,7 +5,9 @@ const SessionClientContext = createContext<SessionClient | null>(null);
 
 export function SessionClientProvider(props: { client: SessionClient; children: ReactNode }) {
   return (
-    <SessionClientContext.Provider value={props.client}>{props.children}</SessionClientContext.Provider>
+    <SessionClientContext.Provider value={props.client}>
+      {props.children}
+    </SessionClientContext.Provider>
   );
 }
 

@@ -20,7 +20,9 @@
 
 .seat[data-you='true'] .avatar {
   border-radius: 50%;
-  box-shadow: 0 0 0 3px var(--color-accent), 0 0 24px rgb(232 184 79 / 0.45);
+  box-shadow:
+    0 0 0 3px var(--color-accent),
+    0 0 24px rgb(232 184 79 / 0.45);
 }
 
 .crown {
@@ -56,7 +58,7 @@
   font-weight: 500;
 }
 
-.offline {
+.status {
   font-size: 0.7rem;
   color: var(--color-text-muted);
   text-transform: uppercase;

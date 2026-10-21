@@ -24,6 +24,7 @@ export interface SessionClient {
   setUncertain(uncertain: boolean): Promise<Ack>;
   ignorePlayer(playerId: string, ignored: boolean): Promise<Ack>;
   reveal(): Promise<Ack>;
+  setSpectating(spectating: boolean): Promise<Ack>;
   transferAdmin(playerId: string): Promise<Ack>;
   onState(listener: (view: SessionView) => void): Unsubscribe;
   onClosed(listener: (reason: SessionClosedReason) => void): Unsubscribe;
@@ -67,6 +68,7 @@ export function createSessionClient(
     ignorePlayer: (playerId, ignored) =>
       request((s) => s.emitWithAck('round:ignore', { playerId, ignored })),
     reveal: () => request((s) => s.emitWithAck('round:reveal')),
+    setSpectating: (spectating) => request((s) => s.emitWithAck('player:spectate', spectating)),
     transferAdmin: (playerId) => request((s) => s.emitWithAck('admin:transfer', playerId)),
 
     onState: (listener) => subscribe('session:state', listener),

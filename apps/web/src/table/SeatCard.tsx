@@ -19,7 +19,8 @@ interface SeatCardProps {
  * Stapeln in die Tischmitte wandert.
  */
 export function SeatCard({ player, phase, position, dealOrder }: SeatCardProps) {
-  if (phase === 'lobby') return null;
+  // Zuschauer spielen nicht mit – dass sie zuschauen, steht schon an ihrem Platz.
+  if (phase === 'lobby' || player.isSpectator) return null;
   const placement = { left: `${position.x}%`, top: `${position.y}%` } as CSSProperties;
 
   if (player.status === 'ignored') {
@@ -71,7 +72,7 @@ export function SeatCard({ player, phase, position, dealOrder }: SeatCardProps) 
       <PlayingCard
         owner={player.name}
         value={player.card}
-        faceUp={gathering}
+        faceUp={gathering || player.cardOpen}
         uncertain={player.uncertain}
         waiting={!hasCard}
       />

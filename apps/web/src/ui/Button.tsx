@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from 'react';
 import styles from './Button.module.css';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  readonly variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  readonly variant?: 'primary' | 'secondary' | 'ghost';
   readonly size?: 'regular' | 'small';
 }
 

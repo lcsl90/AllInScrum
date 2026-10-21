@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { fitAvatar, type ImageEncoder } from './avatar-fitting.ts';
 
 /** Fake-Encoder: Die "Dateigröße" wächst mit Kantenlänge und Qualität. */
-const encoder: ImageEncoder = (size, quality) => `${size}@${quality}:`.padEnd(size * size * quality * 0.5, 'x');
+const encoder: ImageEncoder = (size, quality) =>
+  `${size}@${quality}:`.padEnd(size * size * quality * 0.5, 'x');
 
 describe('fitAvatar', () => {
   it('nimmt die größte, schönste Variante, wenn sie ins Budget passt', () => {

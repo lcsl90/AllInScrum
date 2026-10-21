@@ -14,7 +14,8 @@ describe('Profil im Cookie', () => {
 
   it('merkt sich ein Foto bis zur Cookie-tauglichen Maximalgröße', () => {
     const prefix = 'data:image/webp;base64,';
-    const base64 = 'Ab+/'.repeat(1000).slice(0, MAX_AVATAR_DATA_URL_LENGTH - prefix.length - 2) + '==';
+    const base64 =
+      'Ab+/'.repeat(1000).slice(0, MAX_AVATAR_DATA_URL_LENGTH - prefix.length - 2) + '==';
     const avatar = prefix + base64;
 
     saveProfile({ name: 'Alice', avatar });

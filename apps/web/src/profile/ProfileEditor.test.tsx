@@ -42,6 +42,8 @@ describe('Profil bearbeiten', () => {
 
     await user.upload(screen.getByLabelText('Foto hochladen'), photoFile());
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Dieses Bild konnte nicht verwendet werden');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Dieses Bild konnte nicht verwendet werden',
+    );
   });
 });

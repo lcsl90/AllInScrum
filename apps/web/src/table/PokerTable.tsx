@@ -12,6 +12,7 @@ import styles from './PokerTable.module.css';
 import { Seat, type SeatAction } from './Seat.tsx';
 import { SeatCard } from './SeatCard.tsx';
 import { seatLayout } from './seat-layout.ts';
+import { SpectatorToggle } from './SpectatorToggle.tsx';
 import { UncertainToggle } from './UncertainToggle.tsx';
 import { type TableCommands, useTableCommands } from './use-table-commands.ts';
 
@@ -39,7 +40,11 @@ export function PokerTable({ view, online }: PokerTableProps) {
           <div className={styles.rail} />
           <div className={styles.felt}>
             <div className={styles.feltLine} />
-            <span className={styles.feltLogo} aria-hidden="true" data-hidden={view.phase !== 'lobby'}>
+            <span
+              className={styles.feltLogo}
+              aria-hidden="true"
+              data-hidden={view.phase !== 'lobby'}
+            >
               AllInScrum
             </span>
           </div>
@@ -70,7 +75,7 @@ export function PokerTable({ view, online }: PokerTableProps) {
       </div>
 
       <footer className={styles.handArea}>
-        {me && canPlay(me, view) && <PlayerControls me={me} view={view} commands={commands} />}
+        {me && <PlayerControls me={me} view={view} commands={commands} />}
       </footer>
     </div>
   );
@@ -109,7 +114,12 @@ function TableHeader({ view, online }: PokerTableProps) {
           )}
         </AnimatePresence>
         <JoinCodeBadge joinCode={view.joinCode} />
-        <Button variant="ghost" size="small" onClick={() => void leave()} aria-label="Tisch verlassen">
+        <Button
+          variant="ghost"
+          size="small"
+          onClick={() => void leave()}
+          aria-label="Tisch verlassen"
+        >
           <ExitIcon size={16} />
           <span className={styles.leaveLabel}>Verlassen</span>
         </Button>
@@ -124,25 +134,47 @@ interface PlayerControlsProps {
   readonly commands: TableCommands;
 }
 
-/** Die eigene Hand und der Unsicherheits-Schalter – oder der Hinweis, dass man aussetzt. */
+/**
+ * Die eigene Hand mit Unsicherheits-Schalter, solange gespielt wird – und jederzeit der Schalter,
+ * um nur zuzuschauen.
+ */
 function PlayerControls({ me, view, commands }: PlayerControlsProps) {
+  const spectatorToggle = (
+    <SpectatorToggle spectating={me.isSpectator} onChange={commands.setSpectating} />
+  );
+  if (me.isSpectator) {
+    return (
+      <>
+        <p className={styles.sittingOut}>Du schaust nur zu und schätzt nicht mit.</p>
+        <div className={styles.toggles}>{spectatorToggle}</div>
+      </>
+    );
+  }
   const sittingOut = me.status === 'ignored';
+  const playing = canPlay(me, view);
   return (
     <>
       {sittingOut && <p className={styles.sittingOut}>Du setzt diese Runde aus.</p>}
-      <CardHand
-        deck={view.deck}
-        selected={me.card}
-        round={view.round}
-        disabled={sittingOut}
-        canRetract={view.phase === 'voting'}
-        onSelect={commands.vote}
-      />
-      <UncertainToggle
-        uncertain={me.uncertain}
-        disabled={sittingOut}
-        onChange={commands.setUncertain}
-      />
+      {playing && (
+        <CardHand
+          deck={view.deck}
+          selected={me.card}
+          round={view.round}
+          disabled={sittingOut}
+          canRetract={view.phase === 'voting'}
+          onSelect={commands.vote}
+        />
+      )}
+      <div className={styles.toggles}>
+        {playing && (
+          <UncertainToggle
+            uncertain={me.uncertain}
+            disabled={sittingOut}
+            onChange={commands.setUncertain}
+          />
+        )}
+        {spectatorToggle}
+      </div>
     </>
   );
 }
@@ -152,8 +184,12 @@ function canPlay(me: PlayerView, view: SessionView): boolean {
   return view.phase === 'voting' || (view.phase === 'revealed' && me.status === 'voted');
 }
 
-/** Was der Admin mit einem anderen Spieler tun kann – abhängig von der Phase. */
-function adminActionsFor(player: PlayerView, view: SessionView, commands: TableCommands): SeatAction[] {
+/** Was der Admin mit einem anderen Spieler tun kann – Zuschauer entscheiden selbst, ob sie mitschätzen. */
+function adminActionsFor(
+  player: PlayerView,
+  view: SessionView,
+  commands: TableCommands,
+): SeatAction[] {
   if (player.id === view.youId) return [];
   const ignored = player.status === 'ignored';
   const ignoreAction: SeatAction = {
@@ -161,7 +197,7 @@ function adminActionsFor(player: PlayerView, view: SessionView, commands: TableC
     onSelect: () => commands.ignorePlayer(player.id, !ignored),
   };
   return [
-    ...(view.phase === 'voting' ? [ignoreAction] : []),
+    ...(view.phase === 'voting' && !player.isSpectator ? [ignoreAction] : []),
     { label: 'Zum Admin machen', onSelect: () => commands.transferAdmin(player.id) },
   ];
 }

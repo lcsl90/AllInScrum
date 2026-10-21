@@ -1,3 +1,4 @@
+import { COFFEE_CARD } from '@allinscrum/protocol';
 import { describe, expect, it } from 'vitest';
 import { loadConfig } from './config.ts';
 
@@ -11,7 +12,7 @@ describe('loadConfig', () => {
       removeOfflineAfterMs: 5 * 60_000,
       maxSessions: 200,
       maxPlayersPerSession: 16,
-      deck: ['0', '1', '2', '3', '5', '8', '13', '21', '34', '?', '☕'],
+      deck: ['0', '1', '2', '3', '5', '8', '13', '21', '34', '?', COFFEE_CARD],
       trustProxy: false,
     });
   });
@@ -46,9 +47,12 @@ describe('loadConfig', () => {
     });
   });
 
-  it.each(['abc', '-1', '0', '1.5', ''])('bricht bei ungültiger Zahl "%s" mit klarer Meldung ab', (value) => {
-    expect(() => loadConfig({ MAX_SESSIONS: value })).toThrow(/MAX_SESSIONS/);
-  });
+  it.each(['abc', '-1', '0', '1.5', ''])(
+    'bricht bei ungültiger Zahl "%s" mit klarer Meldung ab',
+    (value) => {
+      expect(() => loadConfig({ MAX_SESSIONS: value })).toThrow(/MAX_SESSIONS/);
+    },
+  );
 
   it('übernimmt ein eigenes Kartendeck', () => {
     expect(loadConfig({ CARD_DECK: ' XS, S ,M,L,XL, ? ' }).deck).toEqual([

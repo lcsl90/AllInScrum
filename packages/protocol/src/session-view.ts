@@ -1,5 +1,8 @@
-/** Wert einer Schätzkarte, z. B. "5", "?" oder "☕". */
+/** Wert einer Schätzkarte, z. B. "5", "?" oder COFFEE_CARD. */
 export type Card = string;
+
+/** Die Pausenkarte ("Ich brauche einen Kaffee") – das Frontend zeigt sie als Tassen-Symbol. */
+export const COFFEE_CARD: Card = 'coffee';
 
 /** lobby: noch keine Runde gestartet · voting: Karten werden gelegt · revealed: aufgedeckt */
 export type RoundPhase = 'lobby' | 'voting' | 'revealed';
@@ -14,20 +17,26 @@ export interface PlayerView {
   readonly avatar: string | null;
   readonly isAdmin: boolean;
   readonly isOnline: boolean;
+  /** Schaut nur zu (z. B. Scrum Master) – setzt jede Runde aus, bis er selbst wieder einsteigt. */
+  readonly isSpectator: boolean;
   readonly status: VoteStatus;
   readonly uncertain: boolean;
   /** Die eigene Karte ist immer sichtbar, fremde Karten erst nach dem Aufdecken. */
   readonly card: Card | null;
+  /** Liegt die Karte für alle offen? Nach dem Aufdecken – Signalkarten wie "?" schon vorher. */
+  readonly cardOpen: boolean;
   /** Nach dem Aufdecken getauscht? Dann die ursprünglich aufgedeckte Karte, sonst null. */
   readonly replacedCard: Card | null;
 }
 
 export interface RoundResult {
+  /** Echter Mittelwert der Zahlenkarten, z. B. 6.5 – null, wenn keine Zahlenkarte gelegt wurde. */
+  readonly average: number | null;
   /**
-   * Durchschnitt der Zahlenkarten – als nächstgelegene Karte des Decks (bei Fibonacci gibt es keine 6).
-   * null, wenn keine Zahlenkarte gelegt wurde.
+   * Die Karte des Decks, die dem Mittelwert am nächsten liegt (bei Fibonacci gibt es keine 6 –
+   * aus 6.5 wird die 8). null, wenn keine Zahlenkarte gelegt wurde.
    */
-  readonly average: Card | null;
+  readonly suggestedCard: Card | null;
   /** true, wenn alle gewerteten Spieler dieselbe Karte gelegt haben. */
   readonly consensus: boolean;
 }

@@ -52,9 +52,24 @@ describe('Session-Seite', () => {
     client.respond('joinSession', { ok: false, error: 'session-not-found' });
     const { user, history } = renderApp(<SessionPage joinCode="K7Q-X2M" />, { client });
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Zu diesem Code gibt es keine Session');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Zu diesem Code gibt es keine Session',
+    );
     await user.click(screen.getByRole('button', { name: 'Zur Startseite' }));
     expect(history.at(-1)).toBe('/');
+  });
+
+  it.each([
+    ['session-not-found', 'Tisch nicht gefunden'],
+    ['session-full', 'Kein Platz frei'],
+    ['too-many-attempts', 'Beitritt nicht möglich'],
+  ] as const)('betitelt den Fehler %s passend: %s', async (error, title) => {
+    saveProfile(alice);
+    const client = new FakeSessionClient();
+    client.respond('joinSession', { ok: false, error });
+    renderApp(<SessionPage joinCode="K7Q-X2M" />, { client });
+
+    expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument();
   });
 
   it('meldet, wenn die Session wegen Inaktivität geschlossen wurde', async () => {

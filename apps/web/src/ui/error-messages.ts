@@ -17,6 +17,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   'round-already-active': 'Es läuft bereits eine Schätzrunde.',
   'invalid-card': 'Diese Karte gibt es im Deck nicht.',
   'player-ignored': 'Du setzt diese Runde aus.',
+  'player-spectating': 'Wer zuschaut, entscheidet selbst, wann er wieder mitschätzt.',
   'votes-missing': 'Es haben noch nicht alle geschätzt.',
   internal: 'Da ist etwas schiefgelaufen. Bitte versuche es erneut.',
   'server-unreachable': 'Der Server antwortet gerade nicht. Prüfe deine Verbindung.',

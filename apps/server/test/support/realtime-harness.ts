@@ -6,7 +6,10 @@ import { io as connectClient, type Socket } from 'socket.io-client';
 import { AttemptLimiter } from '../../src/application/attempt-limiter.ts';
 import { type RegistrySettings, SessionRegistry } from '../../src/application/session-registry.ts';
 import { DEFAULT_DECK } from '../../src/domain/deck.ts';
-import { attachRealtimeGateway, type RealtimeGateway } from '../../src/transport/realtime-gateway.ts';
+import {
+  attachRealtimeGateway,
+  type RealtimeGateway,
+} from '../../src/transport/realtime-gateway.ts';
 import { FakeClock, minutes, seconds } from './fake-clock.ts';
 
 type ClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -69,7 +72,9 @@ export interface TestServer {
   close(): Promise<void>;
 }
 
-export async function startTestServer(overrides: Partial<RegistrySettings> = {}): Promise<TestServer> {
+export async function startTestServer(
+  overrides: Partial<RegistrySettings> = {},
+): Promise<TestServer> {
   const clock = new FakeClock();
   const registry = new SessionRegistry({
     deck: DEFAULT_DECK,

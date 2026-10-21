@@ -9,7 +9,10 @@ const GROUP_LENGTH = 3;
 const VALID_CODE = new RegExp(`^[${ALPHABET}]{${GROUP_LENGTH * 2}}$`);
 
 export function generateJoinCode(): string {
-  const characters = Array.from({ length: GROUP_LENGTH * 2 }, () => ALPHABET[randomInt(ALPHABET.length)]);
+  const characters = Array.from(
+    { length: GROUP_LENGTH * 2 },
+    () => ALPHABET[randomInt(ALPHABET.length)],
+  );
   return format(characters.join(''));
 }
 

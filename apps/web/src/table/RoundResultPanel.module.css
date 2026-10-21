@@ -1,40 +1,78 @@
 .result {
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.summary {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.suggestion {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgb(255 255 255 / 0.78);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+}
+
+.suggestion strong {
+  color: var(--color-accent-strong);
 }
 
 .average {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.18em;
+  margin: 0;
+  max-width: 30ch;
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4.6vw, 3.2rem);
-  font-weight: 700;
+  font-size: clamp(1rem, 1.9vw, 1.25rem);
+  line-height: 1.35;
+  text-wrap: balance;
+  color: var(--color-text);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+}
+
+.averageValue {
+  display: inline-block;
+  margin: 0 0.08em;
+  font-size: 1.9em;
   line-height: 1;
+  vertical-align: -0.12em;
   color: var(--color-accent-strong);
   text-shadow:
-    0 0 30px rgb(232 184 79 / 0.55),
+    0 0 24px rgb(232 184 79 / 0.55),
     0 2px 0 rgb(0 0 0 / 0.35);
 }
 
-.averageSign {
-  font-size: 0.7em;
-  opacity: 0.85;
-}
-
+/*
+ * Oben und seitlich Luft: Getauschte Karten liegen schräg versetzt unter dem Stapel und das
+ * Unsicherheits-Abzeichen ragt über die Kartenkante – beides darf nichts überdecken.
+ */
 .stacks {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-end;
-  gap: clamp(10px, 2vw, 22px);
+  align-items: flex-start;
+  gap: 14px clamp(22px, 3vw, 36px);
+  padding: 18px 12px 0;
 }
 
+/* Ein Wert: gestapelte Karten und daneben einzeln, wer getauscht hat. */
 .stack {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.column {
   display: grid;
   justify-items: center;
-  gap: 6px;
+  gap: 10px;
+}
+
+/* Die ursprüngliche Karte schaut links unter der getauschten hervor – dafür braucht es Platz. */
+.column[data-swapped='true'] {
+  padding-left: 22px;
 }
 
 /* Ein Stapel: jede weitere Karte liegt leicht versetzt und gedreht obenauf. */
@@ -53,28 +91,88 @@
   filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.3));
 }
 
+/* Wer den Stapel gelegt hat: Avatar mit Namen darunter, nebeneinander und bei Bedarf umbrechend. */
 .owners {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 6px;
+  max-width: 230px;
 }
 
 .owner {
-  margin-left: -6px;
-  border-radius: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 68px;
 }
 
-.owner:first-child {
-  margin-left: 0;
+.ownerName {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-text);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
 }
 
 .consensus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
   font-weight: 700;
   color: var(--color-success);
   letter-spacing: 0.04em;
 }
 
+/* Auf dem Handy ist der Tisch schmal: alles etwas kompakter, damit die Plätze frei bleiben. */
 @media (max-width: 640px) {
+  .result {
+    gap: 6px;
+  }
+
+  .average {
+    font-size: 0.9rem;
+  }
+
+  .averageValue {
+    font-size: 1.6em;
+  }
+
+  .suggestion {
+    font-size: 0.75rem;
+  }
+
   .stacks {
-    gap: 8px;
+    gap: 8px 14px;
+    padding: 12px 8px 0;
+  }
+
+  .column {
+    gap: 6px;
+  }
+
+  .owners {
+    gap: 4px;
+  }
+
+  .owner {
+    width: 48px;
+    gap: 2px;
+  }
+
+  /* Die Gesichter unter den Stapeln (Avatar ist das erste Kind). */
+  .owner > :first-child {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .ownerName {
+    font-size: 0.65rem;
   }
 }

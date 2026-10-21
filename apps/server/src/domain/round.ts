@@ -1,4 +1,5 @@
 import type { Card, RoundResult, VoteStatus } from '@allinscrum/protocol';
+import { SIGNAL_CARDS } from './deck.ts';
 import { DomainError } from './domain-error.ts';
 import { summarizeRound } from './round-result.ts';
 
@@ -94,10 +95,16 @@ export class Round {
     return this.cards.has(playerId) ? 'voted' : 'pending';
   }
 
-  /** Die Karte ist nur für den Spieler selbst sichtbar – oder für alle nach dem Aufdecken. */
+  /** Die Karte ist nur für den Spieler selbst sichtbar – oder für alle, sobald sie offen liegt. */
   cardVisibleTo(viewerId: string, playerId: string): Card | null {
-    if (!this.revealed && viewerId !== playerId) return null;
+    if (viewerId !== playerId && !this.isCardOpen(playerId)) return null;
     return this.cards.get(playerId) ?? null;
+  }
+
+  /** Offen liegen alle Karten nach dem Aufdecken – Signalkarten wie "?" schon vorher. */
+  isCardOpen(playerId: string): boolean {
+    const card = this.cards.get(playerId);
+    return card !== undefined && (this.revealed || SIGNAL_CARDS.includes(card));
   }
 
   isUncertain(playerId: string): boolean {

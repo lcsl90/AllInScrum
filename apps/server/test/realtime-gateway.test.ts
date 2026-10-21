@@ -22,7 +22,10 @@ describe('Realtime-Protokoll', () => {
       profile: profile('Alice'),
     });
 
-    expect(response).toMatchObject({ ok: true, data: { joinCode: expect.stringMatching(/^\w{3}-\w{3}$/) } });
+    expect(response).toMatchObject({
+      ok: true,
+      data: { joinCode: expect.stringMatching(/^\w{3}-\w{3}$/) },
+    });
     const view = await alice.viewWhere((v) => v.players.length === 1);
     expect(view).toMatchObject({ name: 'Sprint 42', phase: 'lobby' });
     expect(view.players[0]).toMatchObject({ name: 'Alice', isAdmin: true });
@@ -38,7 +41,8 @@ describe('Realtime-Protokoll', () => {
     });
 
     expect(response).toMatchObject({ ok: true, data: { joinCode } });
-    const names = (view: { players: readonly { name: string }[] }) => view.players.map((p) => p.name);
+    const names = (view: { players: readonly { name: string }[] }) =>
+      view.players.map((p) => p.name);
     expect(names(await alice.viewWhere((v) => v.players.length === 2))).toEqual(['Alice', 'Bob']);
     expect(names(await bob.viewWhere((v) => v.players.length === 2))).toEqual(['Alice', 'Bob']);
   });
@@ -46,7 +50,10 @@ describe('Realtime-Protokoll', () => {
   it('meldet unbekannte Codes als Antwort statt abzustürzen', async () => {
     const bob = await server.connect();
 
-    const response = await bob.emit('session:join', { joinCode: 'ZZZ-ZZZ', profile: profile('Bob') });
+    const response = await bob.emit('session:join', {
+      joinCode: 'ZZZ-ZZZ',
+      profile: profile('Bob'),
+    });
 
     expect(response).toEqual({ ok: false, error: 'session-not-found' });
   });
@@ -95,14 +102,16 @@ describe('Realtime-Protokoll', () => {
       await alice.emit('round:vote', '3');
       await bob.emit('round:vote', '8');
 
-      const beforeReveal = await alice.viewWhere((v) => v.players.every((p) => p.status === 'voted'));
+      const beforeReveal = await alice.viewWhere((v) =>
+        v.players.every((p) => p.status === 'voted'),
+      );
       expect(beforeReveal.players.map((p) => p.card)).toEqual(['3', null]);
 
       await alice.emit('round:reveal');
 
       const afterReveal = await bob.viewWhere((v) => v.phase === 'revealed');
       expect(afterReveal.players.map((p) => p.card)).toEqual(['3', '8']);
-      expect(afterReveal.result?.average).toBe('5');
+      expect(afterReveal.result?.suggestedCard).toBe('5');
     });
 
     it('zeigt allen, wenn jemand unsicher ist', async () => {
@@ -123,6 +132,15 @@ describe('Realtime-Protokoll', () => {
 
       const view = await bob.viewWhere((v) => v.players.some((p) => p.status === 'ignored'));
       expect(view.players[1]?.status).toBe('ignored');
+    });
+
+    it('lässt jeden sich selbst als Zuschauer aus der Schätzung nehmen', async () => {
+      const { alice, bob, bobMembership } = await tableWithAliceAndBob();
+
+      expect(await bob.emit('player:spectate', true)).toEqual({ ok: true, data: null });
+
+      const view = await alice.viewWhere((v) => v.players.some((p) => p.isSpectator));
+      expect(view.players.find((p) => p.isSpectator)?.id).toBe(bobMembership.playerId);
     });
 
     it('lässt den Admin seine Rolle übergeben', async () => {

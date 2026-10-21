@@ -55,7 +55,8 @@ export function Seat({ player, position, isYou, actions = [] }: SeatProps) {
         {player.name}
         {isYou && <span className={styles.you}> (du)</span>}
       </span>
-      {!player.isOnline && <span className={styles.offline}>offline</span>}
+      {player.isSpectator && <span className={styles.status}>schaut zu</span>}
+      {!player.isOnline && <span className={styles.status}>offline</span>}
     </motion.div>
   );
 }
@@ -74,7 +75,8 @@ function SeatMenu({ playerName, actions, children }: SeatMenuProps) {
     if (!open) return;
     const close = (event: Event) => {
       if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
-      if (event instanceof PointerEvent && container.current?.contains(event.target as Node)) return;
+      if (event instanceof PointerEvent && container.current?.contains(event.target as Node))
+        return;
       setOpen(false);
     };
     document.addEventListener('pointerdown', close);

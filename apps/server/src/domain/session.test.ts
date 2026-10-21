@@ -1,4 +1,4 @@
-import type { PlayerView, SessionView } from '@allinscrum/protocol';
+import { COFFEE_CARD, type PlayerView, type SessionView } from '@allinscrum/protocol';
 import { describe, expect, it } from 'vitest';
 import { FakeClock, minutes, seconds } from '../../test/support/fake-clock.ts';
 import { DEFAULT_DECK } from './deck.ts';
@@ -197,7 +197,21 @@ describe('Session', () => {
       expect(playerIn(session.viewFor(alice.playerId), bob)).toMatchObject({
         status: 'voted',
         card: null,
+        cardOpen: false,
       });
+    });
+
+    it.each(['?', COFFEE_CARD])('legt die Signalkarte %s sofort für alle offen hin', (card) => {
+      const { session, players } = startedSession();
+      const [alice, bob] = players;
+
+      session.vote(bob.playerId, card);
+
+      expect(playerIn(session.viewFor(alice.playerId), bob)).toMatchObject({
+        card,
+        cardOpen: true,
+      });
+      expect(playerIn(session.viewFor(bob.playerId), bob)).toMatchObject({ card, cardOpen: true });
     });
 
     it('akzeptiert nur Karten aus dem Deck', () => {
@@ -273,6 +287,7 @@ describe('Session', () => {
       const view = session.viewFor(bob.playerId);
       expect(view.phase).toBe('revealed');
       expect(view.players.map((player) => player.card)).toEqual(['3', '5', '8']);
+      expect(view.players.every((player) => player.cardOpen)).toBe(true);
     });
 
     it('wartet, bis alle geschätzt haben', () => {
@@ -321,7 +336,7 @@ describe('Session', () => {
 
         session.vote(carol.playerId, '5');
 
-        expect(session.viewFor(alice.playerId).result?.average).toBe('5');
+        expect(session.viewFor(alice.playerId).result?.suggestedCard).toBe('5');
       });
 
       it('hebt die Markierung auf, wenn zur ursprünglichen Karte zurückgetauscht wird', () => {
@@ -360,7 +375,7 @@ describe('Session', () => {
 
       session.reveal(alice.playerId);
 
-      expect(session.viewFor(alice.playerId).result).toMatchObject({ average: '5' });
+      expect(session.viewFor(alice.playerId).result).toMatchObject({ suggestedCard: '5' });
     });
 
     describe('Spieler aussetzen lassen', () => {
@@ -400,7 +415,7 @@ describe('Session', () => {
         session.reveal(alice.playerId);
 
         const view = session.viewFor(alice.playerId);
-        expect(view.result?.average).toBe('5');
+        expect(view.result?.suggestedCard).toBe('5');
         expect(playerIn(view, carol)?.card).toBeNull();
       });
 
@@ -433,6 +448,93 @@ describe('Session', () => {
     });
   });
 
+  describe('Zuschauen', () => {
+    it('nimmt einen Spieler aus der Schätzung – das Aufdecken wartet nicht auf ihn', () => {
+      const session = createSession();
+      const [alice, bob, carol] = seat(session, 'Alice', 'Bob', 'Carol');
+      session.setSpectating(alice.playerId, true);
+      session.startRound(alice.playerId);
+
+      session.vote(bob.playerId, '5');
+      session.vote(carol.playerId, '8');
+
+      const view = session.viewFor(alice.playerId);
+      expect(playerIn(view, alice)).toMatchObject({ isSpectator: true, status: 'ignored' });
+      expect(view.canReveal).toBe(true);
+    });
+
+    it('gilt dauerhaft – auch in den folgenden Runden', () => {
+      const session = createSession();
+      const [alice, bob, carol] = seat(session, 'Alice', 'Bob', 'Carol');
+      session.setSpectating(alice.playerId, true);
+      session.startRound(alice.playerId);
+      session.vote(bob.playerId, '5');
+      session.vote(carol.playerId, '8');
+      session.reveal(alice.playerId);
+
+      session.startRound(alice.playerId);
+
+      expect(playerIn(session.viewFor(bob.playerId), alice)?.status).toBe('ignored');
+    });
+
+    it('nimmt eine bereits gelegte Karte zurück', () => {
+      const session = createSession();
+      const [alice, bob] = seat(session, 'Alice', 'Bob', 'Carol');
+      session.startRound(alice.playerId);
+      session.vote(bob.playerId, '5');
+
+      session.setSpectating(bob.playerId, true);
+
+      expect(playerIn(session.viewFor(bob.playerId), bob)).toMatchObject({
+        status: 'ignored',
+        card: null,
+      });
+    });
+
+    it('lässt Zuschauer jederzeit wieder mitschätzen', () => {
+      const session = createSession();
+      const [alice, bob] = seat(session, 'Alice', 'Bob', 'Carol');
+      session.setSpectating(bob.playerId, true);
+      session.startRound(alice.playerId);
+
+      session.setSpectating(bob.playerId, false);
+      session.vote(bob.playerId, '5');
+
+      expect(playerIn(session.viewFor(bob.playerId), bob)).toMatchObject({
+        isSpectator: false,
+        status: 'voted',
+      });
+    });
+
+    it('braucht für eine Runde mindestens zwei, die mitschätzen', () => {
+      const session = createSession();
+      const [alice] = seat(session, 'Alice', 'Bob');
+
+      session.setSpectating(alice.playerId, true);
+
+      expect(session.viewFor(alice.playerId).canStart).toBe(false);
+      expect(() => session.startRound(alice.playerId)).toThrowDomainError('not-enough-players');
+    });
+
+    it('überlässt die Entscheidung den Zuschauern selbst – der Admin kann sie nicht aussetzen lassen', () => {
+      const session = createSession();
+      const [alice, bob] = seat(session, 'Alice', 'Bob', 'Carol');
+      session.setSpectating(bob.playerId, true);
+      session.startRound(alice.playerId);
+
+      expect(() => session.ignore(alice.playerId, bob.playerId, false)).toThrowDomainError(
+        'player-spectating',
+      );
+    });
+
+    it('steht nur Spielern am Tisch offen', () => {
+      const session = createSession();
+      seat(session, 'Alice', 'Bob');
+
+      expect(() => session.setSpectating('fremd', true)).toThrowDomainError('not-a-member');
+    });
+  });
+
   describe('Tisch verlassen', () => {
     it('entfernt den Spieler samt Karte', () => {
       const session = createSession();
@@ -447,7 +549,7 @@ describe('Session', () => {
 
       const view = session.viewFor(alice.playerId);
       expect(view.players.map((player) => player.name)).toEqual(['Alice', 'Bob']);
-      expect(view.result?.average).toBe('5');
+      expect(view.result?.suggestedCard).toBe('5');
     });
 
     it('übergibt die Admin-Rolle an den am längsten anwesenden Spieler', () => {

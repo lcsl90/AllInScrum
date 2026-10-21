@@ -72,9 +72,3 @@
   color: var(--color-text);
   background: var(--color-surface);
 }
-
-.danger {
-  background: rgb(239 91 91 / 0.14);
-  border-color: rgb(239 91 91 / 0.4);
-  color: #ffb4b4;
-}

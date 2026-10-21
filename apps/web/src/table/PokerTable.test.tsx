@@ -1,4 +1,4 @@
-import type { SessionView } from '@allinscrum/protocol';
+import { COFFEE_CARD, type SessionView } from '@allinscrum/protocol';
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { rememberMembership, resumeTokenFor } from '../realtime/membership-store.ts';
@@ -39,7 +39,10 @@ describe('Pokertisch', () => {
 
     it('bittet den Ersteller, sein Team einzuladen, solange er allein am Tisch sitzt', () => {
       renderTable(
-        buildView({ canStart: false, players: [buildPlayer({ id: 'me', name: 'Alice', isAdmin: true })] }),
+        buildView({
+          canStart: false,
+          players: [buildPlayer({ id: 'me', name: 'Alice', isAdmin: true })],
+        }),
       );
 
       expect(screen.getByRole('heading', { name: 'Lade dein Team ein' })).toBeInTheDocument();
@@ -120,6 +123,29 @@ describe('Pokertisch', () => {
       expect(client.callsOf('vote')).toEqual([['5']]);
     });
 
+    it('zeigt die Kaffeekarte als Symbol und legt sie wie jede andere Karte', async () => {
+      const { user, client } = renderTable(voting());
+      const hand = screen.getByRole('group', { name: 'Deine Karten' });
+
+      await user.click(within(hand).getByRole('button', { name: 'Karte Kaffeepause' }));
+
+      expect(within(hand).queryByText(COFFEE_CARD)).not.toBeInTheDocument();
+      expect(client.callsOf('vote')).toEqual([[COFFEE_CARD]]);
+    });
+
+    it('zeigt offen liegende Karten wie das ? schon vor dem Aufdecken am Platz', () => {
+      renderTable(
+        voting({
+          players: [
+            buildPlayer({ id: 'me', name: 'Alice', isAdmin: true }),
+            buildPlayer({ id: 'bob', status: 'voted', card: '?', cardOpen: true }),
+          ],
+        }),
+      );
+
+      expect(screen.getByRole('img', { name: 'Bob: Karte ?' })).toBeInTheDocument();
+    });
+
     it('nimmt die gelegte Karte mit einem zweiten Klick zurück', async () => {
       const view = voting({
         players: [
@@ -128,9 +154,12 @@ describe('Pokertisch', () => {
         ],
       });
       const { user, client } = renderTable(view);
-      const chosen = within(screen.getByRole('group', { name: 'Deine Karten' })).getByRole('button', {
-        name: 'Karte 5',
-      });
+      const chosen = within(screen.getByRole('group', { name: 'Deine Karten' })).getByRole(
+        'button',
+        {
+          name: 'Karte 5',
+        },
+      );
       expect(chosen).toHaveAttribute('aria-pressed', 'true');
 
       await user.click(chosen);
@@ -158,7 +187,9 @@ describe('Pokertisch', () => {
         }),
       );
 
-      expect(screen.getByRole('img', { name: 'Bob: verdeckte Karte, unsicher' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('img', { name: 'Bob: verdeckte Karte, unsicher' }),
+      ).toBeInTheDocument();
     });
 
     it('zeigt, wie viele schon geschätzt haben – Ausgesetzte zählen nicht mit', () => {
@@ -186,12 +217,87 @@ describe('Pokertisch', () => {
     });
   });
 
+  describe('Zuschauen', () => {
+    const spectatingAlice = buildPlayer({
+      id: 'me',
+      name: 'Alice',
+      isAdmin: true,
+      isSpectator: true,
+      status: 'ignored',
+    });
+
+    it('nimmt sich per Schalter selbst aus der Schätzung – schon vor der ersten Runde', async () => {
+      const { user, client } = renderTable(buildView());
+      const toggle = screen.getByRole('button', { name: 'Nur zuschauen' });
+      expect(toggle).toHaveAttribute('aria-pressed', 'false');
+
+      await user.click(toggle);
+
+      expect(client.callsOf('setSpectating')).toEqual([[true]]);
+    });
+
+    it('zeigt Zuschauern keine Karten und lässt sie jederzeit wieder einsteigen', async () => {
+      const { user, client } = renderTable(
+        buildView({
+          phase: 'voting',
+          round: 1,
+          players: [spectatingAlice, buildPlayer({ id: 'bob' })],
+        }),
+      );
+      expect(screen.queryByRole('group', { name: 'Deine Karten' })).not.toBeInTheDocument();
+      expect(screen.getByText(/Du schaust nur zu/)).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Nur zuschauen', pressed: true }));
+
+      expect(client.callsOf('setSpectating')).toEqual([[false]]);
+    });
+
+    it('zeigt allen am Platz, wer nur zuschaut – statt eines Aussetzers', () => {
+      renderTable(
+        buildView({
+          phase: 'voting',
+          round: 1,
+          players: [
+            buildPlayer({ id: 'me', name: 'Alice', isAdmin: true }),
+            buildPlayer({ id: 'bob', isSpectator: true, status: 'ignored' }),
+          ],
+        }),
+      );
+
+      expect(screen.getByText('schaut zu')).toBeInTheDocument();
+      expect(screen.queryByText('setzt aus')).not.toBeInTheDocument();
+    });
+
+    it('bietet dem Admin für Zuschauer kein Aussetzen an – das entscheiden sie selbst', async () => {
+      const { user } = renderTable(
+        buildView({
+          phase: 'voting',
+          round: 1,
+          players: [
+            buildPlayer({ id: 'me', name: 'Alice', isAdmin: true }),
+            buildPlayer({ id: 'bob', isSpectator: true, status: 'ignored' }),
+          ],
+        }),
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Aktionen für Bob' }));
+
+      expect(
+        screen.queryByRole('menuitem', { name: 'Wieder mitspielen lassen' }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Zum Admin machen' })).toBeInTheDocument();
+    });
+  });
+
   describe('Admin-Aktionen am Platz', () => {
     const voting = (bob: Partial<Parameters<typeof buildPlayer>[0]> = {}) =>
       buildView({
         phase: 'voting',
         round: 1,
-        players: [buildPlayer({ id: 'me', name: 'Alice', isAdmin: true }), buildPlayer({ id: 'bob', ...bob })],
+        players: [
+          buildPlayer({ id: 'me', name: 'Alice', isAdmin: true }),
+          buildPlayer({ id: 'bob', ...bob }),
+        ],
       });
 
     it('lässt einen abwesenden Spieler diese Runde aussetzen', async () => {
@@ -238,7 +344,7 @@ describe('Pokertisch', () => {
           buildPlayer({ id: 'bob', status: 'voted', card: '8', uncertain: true }),
           buildPlayer({ id: 'carol', status: 'voted', card: '5' }),
         ],
-        result: { average: '5', consensus: false },
+        result: { average: 6, suggestedCard: '5', consensus: false },
         ...overrides,
       });
 
@@ -259,11 +365,78 @@ describe('Pokertisch', () => {
       ]);
     });
 
-    it('zeigt den Durchschnitt als Karte des Decks mit Ø-Zeichen', () => {
+    it('benennt den Stapel der Kaffeekarte verständlich', () => {
+      renderTable(
+        revealed({
+          players: [
+            buildPlayer({
+              id: 'me',
+              name: 'Alice',
+              isAdmin: true,
+              status: 'voted',
+              card: COFFEE_CARD,
+            }),
+            buildPlayer({ id: 'bob', status: 'voted', card: '5' }),
+          ],
+        }),
+      );
+
+      expect(screen.getByRole('group', { name: 'Stapel Kaffeepause: Alice' })).toBeInTheDocument();
+    });
+
+    it('nennt unter jedem Stapel, wer ihn gelegt hat', () => {
       renderTable(revealed());
 
-      expect(screen.getByText('Ø')).toBeInTheDocument();
-      expect(screen.getByText('Durchschnitt: 5')).toBeInTheDocument();
+      const stack = screen.getByRole('group', { name: /^Stapel 5/ });
+      expect(within(stack).getByText('Alice')).toBeInTheDocument();
+      expect(within(stack).getByText('Carol')).toBeInTheDocument();
+    });
+
+    it('nennt den echten Durchschnitt in einem ganzen Satz', () => {
+      renderTable(revealed());
+
+      expect(screen.getByText(/im Schnitt/)).toHaveTextContent(
+        'Das Team hat im Schnitt 6 Storypoints gegeben.',
+      );
+    });
+
+    it.each([
+      [6.5, '6,5'],
+      [13 / 3, '4,3'],
+    ])('schreibt den Durchschnitt %s mit einer Nachkommastelle: %s', (average, written) => {
+      renderTable(revealed({ result: { average, suggestedCard: '5', consensus: false } }));
+
+      expect(screen.getByText(/im Schnitt/)).toHaveTextContent(
+        `Das Team hat im Schnitt ${written} Storypoints gegeben.`,
+      );
+    });
+
+    it('spricht bei einem Punkt in der Einzahl', () => {
+      renderTable(revealed({ result: { average: 1, suggestedCard: '1', consensus: false } }));
+
+      expect(screen.getByText(/im Schnitt/)).toHaveTextContent(
+        'Das Team hat im Schnitt 1 Storypoint gegeben.',
+      );
+    });
+
+    it('erklärt, wenn es ohne Zahlenkarten keinen Durchschnitt gibt', () => {
+      renderTable(revealed({ result: { average: null, suggestedCard: null, consensus: false } }));
+
+      expect(
+        screen.getByText('Ohne Zahlenkarten gibt es keinen Durchschnitt.'),
+      ).toBeInTheDocument();
+    });
+
+    it('schlägt die nächstliegende Karte vor, wenn der Durchschnitt zwischen zwei Karten liegt', () => {
+      renderTable(revealed());
+
+      expect(screen.getByText(/Nächstliegende Karte/)).toHaveTextContent('Nächstliegende Karte: 5');
+    });
+
+    it('verzichtet auf den Vorschlag, wenn der Durchschnitt genau eine Karte ist', () => {
+      renderTable(revealed({ result: { average: 5, suggestedCard: '5', consensus: false } }));
+
+      expect(screen.queryByText(/Nächstliegende Karte/)).not.toBeInTheDocument();
     });
 
     it('lässt die Karte nach dem Aufdecken noch tauschen', async () => {
@@ -286,13 +459,53 @@ describe('Pokertisch', () => {
         }),
       );
 
-      expect(screen.getByRole('img', { name: 'Bob: Karte 5, getauscht von 13' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('img', { name: 'Bob: Karte 5, getauscht von 13' }),
+      ).toBeInTheDocument();
+    });
+
+    it('stellt getauschte Karten einzeln über den, der getauscht hat – die übrigen bleiben gestapelt', () => {
+      renderTable(
+        revealed({
+          players: [
+            buildPlayer({ id: 'me', name: 'Alice', isAdmin: true, status: 'voted', card: '5' }),
+            buildPlayer({ id: 'bob', status: 'voted', card: '5', replacedCard: '13' }),
+            buildPlayer({ id: 'carol', status: 'voted', card: '5' }),
+          ],
+        }),
+      );
+
+      const stack = screen.getByRole('group', { name: 'Stapel 5: Alice, Bob, Carol' });
+      const unchanged = within(stack).getByRole('group', { name: 'Alice, Carol' });
+      const swapped = within(stack).getByRole('group', { name: 'Bob' });
+      expect(within(unchanged).getAllByRole('img', { name: /Karte 5$/ })).toHaveLength(2);
+      expect(
+        within(swapped).getByRole('img', { name: 'Bob: Karte 5, getauscht von 13' }),
+      ).toBeInTheDocument();
+      expect(within(swapped).getByText('Bob')).toBeInTheDocument();
     });
 
     it('feiert, wenn sich alle einig sind', () => {
-      renderTable(revealed({ result: { average: '5', consensus: true } }));
+      renderTable(revealed({ result: { average: 5, suggestedCard: '5', consensus: true } }));
 
-      expect(screen.getByText(/Alle einig/)).toBeInTheDocument();
+      expect(screen.getByText('Alle einig!')).toBeInTheDocument();
+    });
+
+    it('fordert nur zum Diskutieren auf, wenn es Ausreißer gibt', () => {
+      const { rerender } = renderTable(revealed({ youId: 'bob' }));
+      expect(screen.getByText('Diskutiert die Ausreißer!')).toBeInTheDocument();
+
+      rerender(
+        <PokerTable
+          view={revealed({
+            youId: 'bob',
+            result: { average: 5, suggestedCard: '5', consensus: true },
+          })}
+          online
+        />,
+      );
+
+      expect(screen.queryByText('Diskutiert die Ausreißer!')).not.toBeInTheDocument();
     });
 
     it('lässt den Admin die nächste Runde starten', async () => {

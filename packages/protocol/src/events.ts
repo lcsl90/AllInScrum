@@ -31,8 +31,7 @@ export interface Membership {
 }
 
 export type Ack<T = null> =
-  | { readonly ok: true; readonly data: T }
-  | { readonly ok: false; readonly error: ErrorCode };
+  { readonly ok: true; readonly data: T } | { readonly ok: false; readonly error: ErrorCode };
 
 export type AckCallback<T = null> = (response: Ack<T>) => void;
 
@@ -47,6 +46,8 @@ export interface ClientToServerEvents {
   'round:uncertain': (uncertain: boolean, ack: AckCallback) => void;
   'round:ignore': (request: IgnorePlayerRequest, ack: AckCallback) => void;
   'round:reveal': (ack: AckCallback) => void;
+  /** Sich selbst als Zuschauer aus der Schätzung nehmen (true) oder wieder einsteigen (false). */
+  'player:spectate': (spectating: boolean, ack: AckCallback) => void;
   'admin:transfer': (playerId: string, ack: AckCallback) => void;
 }
 

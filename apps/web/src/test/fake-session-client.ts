@@ -2,7 +2,10 @@ import type { Ack, Membership, SessionClosedReason, SessionView } from '@allinsc
 import { act } from '@testing-library/react';
 import type { SessionClient, Unsubscribe } from '../realtime/session-client.ts';
 
-type Command = Exclude<keyof SessionClient, 'onState' | 'onClosed' | 'onConnectionChange' | 'dispose'>;
+type Command = Exclude<
+  keyof SessionClient,
+  'onState' | 'onClosed' | 'onConnectionChange' | 'dispose'
+>;
 
 export interface RecordedCall {
   readonly command: Command;
@@ -51,6 +54,7 @@ export class FakeSessionClient implements SessionClient {
   setUncertain = (...args: unknown[]) => this.record('setUncertain', args);
   ignorePlayer = (...args: unknown[]) => this.record('ignorePlayer', args);
   reveal = (...args: unknown[]) => this.record('reveal', args);
+  setSpectating = (...args: unknown[]) => this.record('setSpectating', args);
   transferAdmin = (...args: unknown[]) => this.record('transferAdmin', args);
 
   onState(listener: (view: SessionView) => void): Unsubscribe {

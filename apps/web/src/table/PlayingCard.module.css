@@ -43,6 +43,14 @@
   line-height: 1;
 }
 
+/* Symbolkarten (z. B. Kaffeepause) wachsen mit der Schrift ihres Platzes. */
+.value svg,
+.corner svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+}
+
 .card[data-long='true'] .inner .value,
 .replaced[data-long='true'] .value {
   font-size: calc(var(--card-width) * 0.34);

@@ -22,6 +22,7 @@ export function useTableCommands() {
       reveal: () => run(() => client.reveal()),
       vote: (card: Card | null) => run(() => client.vote(card)),
       setUncertain: (uncertain: boolean) => run(() => client.setUncertain(uncertain)),
+      setSpectating: (spectating: boolean) => run(() => client.setSpectating(spectating)),
       ignorePlayer: (playerId: string, ignored: boolean) =>
         run(() => client.ignorePlayer(playerId, ignored)),
       transferAdmin: (playerId: string) => run(() => client.transferAdmin(playerId)),

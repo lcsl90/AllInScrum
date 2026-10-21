@@ -25,6 +25,9 @@ expect.extend({
         message: () => `erwartet DomainError "${expected}", erhalten: ${actual}`,
       };
     }
-    return { pass: false, message: () => `erwartet DomainError "${expected}", aber nichts geworfen` };
+    return {
+      pass: false,
+      message: () => `erwartet DomainError "${expected}", aber nichts geworfen`,
+    };
   },
 });

@@ -33,7 +33,9 @@ export function JoinByCodeForm(props: { onCancel: () => void }) {
           autoFocus
           onChange={(event) => setCode(formatJoinCodeInput(event.target.value))}
         />
-        <p className={styles.hint}>Den Code bekommst du von der Person, die die Session eröffnet hat.</p>
+        <p className={styles.hint}>
+          Den Code bekommst du von der Person, die die Session eröffnet hat.
+        </p>
       </div>
       <div className={styles.buttons}>
         <Button variant="ghost" onClick={props.onCancel}>

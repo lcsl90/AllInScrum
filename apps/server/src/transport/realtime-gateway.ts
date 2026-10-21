@@ -60,7 +60,10 @@ export function attachRealtimeGateway(
     socket.on('session:create', (raw, ack) =>
       respond(ack, () => {
         const request = parseCreateSessionRequest(raw);
-        const { session, host } = registry.open({ name: request.sessionName, host: request.profile });
+        const { session, host } = registry.open({
+          name: request.sessionName,
+          host: request.profile,
+        });
         seat(socket, session, host.playerId);
         return { joinCode: session.joinCode, ...host };
       }),
@@ -85,8 +88,14 @@ export function attachRealtimeGateway(
       return (ack) => respond(ack, () => actAsMember(socket, action));
     };
 
-    socket.on('round:start', onMemberCommand((session, me) => session.startRound(me)));
-    socket.on('round:reveal', onMemberCommand((session, me) => session.reveal(me)));
+    socket.on(
+      'round:start',
+      onMemberCommand((session, me) => session.startRound(me)),
+    );
+    socket.on(
+      'round:reveal',
+      onMemberCommand((session, me) => session.reveal(me)),
+    );
 
     socket.on('round:vote', (raw, ack) =>
       onMemberCommand((session, me) => session.vote(me, parseCard(raw)))(ack),
@@ -103,6 +112,10 @@ export function attachRealtimeGateway(
       })(ack),
     );
 
+    socket.on('player:spectate', (raw, ack) =>
+      onMemberCommand((session, me) => session.setSpectating(me, parseFlag(raw)))(ack),
+    );
+
     socket.on('admin:transfer', (raw, ack) =>
       onMemberCommand((session, me) => session.transferAdmin(me, parsePlayerId(raw)))(ack),
     );
@@ -116,7 +129,8 @@ export function attachRealtimeGateway(
     );
 
     socket.on('disconnect', () => {
-      if (socket.data.membership) void markOfflineIfLastConnection(socket.id, socket.data.membership);
+      if (socket.data.membership)
+        void markOfflineIfLastConnection(socket.id, socket.data.membership);
     });
   });
 

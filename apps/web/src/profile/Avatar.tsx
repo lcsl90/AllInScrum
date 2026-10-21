@@ -12,7 +12,9 @@ interface AvatarProps {
 export function Avatar({ name, avatar, size = 48 }: AvatarProps) {
   const style = { '--avatar-size': `${size}px` } as CSSProperties;
   if (avatar) {
-    return <img className={styles.avatar} src={avatar} alt={name} style={style} draggable={false} />;
+    return (
+      <img className={styles.avatar} src={avatar} alt={name} style={style} draggable={false} />
+    );
   }
   return (
     <span

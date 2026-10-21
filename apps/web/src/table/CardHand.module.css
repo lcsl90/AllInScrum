@@ -21,6 +21,26 @@
   width: var(--hand-card-width);
 }
 
+/*
+ * Die hervorgehobene Karte ragt angehoben und vergrößert über die Reihe hinaus. Dieser Teil gehört
+ * zur Klickfläche, solange sie hervorgehoben ist – sonst verschwindet sie, sobald die Maus auf ihn
+ * fährt. Innerhalb der Reihe bleiben die festen Streifen, damit das Wandern durch den Fächer nicht
+ * klebt. Nur mit echter Maus: Auf Touch-Geräten bliebe :hover nach dem Tippen hängen.
+ */
+@media (hover: hover) {
+  .hand[data-disabled='false'] .slot:hover::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: calc(var(--hand-card-width) * (1 - var(--spotlight-scale)) / 2);
+    width: calc(var(--hand-card-width) * var(--spotlight-scale));
+    height: calc(
+      var(--spotlight-lift) + var(--hand-card-width) * 1.4 * (var(--spotlight-scale) - 1)
+    );
+  }
+}
+
 /* Die Optik: bewegt sich frei, ist aber für die Maus durchsichtig. */
 .visual {
   position: absolute;
