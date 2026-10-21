@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-const SERVER_URL = process.env['ALLINSCRUM_SERVER_URL'] ?? 'http://localhost:3000';
+const SERVER_URL = process.env['ALLINSCRUM_SERVER_URL'] ?? 'http://localhost:41400';
 
 export default defineConfig({
   plugins: [react()],

@@ -12,7 +12,7 @@
       "name": "prod",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start"],
-      "port": 3000,
+      "port": 41400,
       "autoPort": true
     }
   ]

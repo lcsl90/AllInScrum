@@ -32,14 +32,14 @@ als einzelner Docker-Container.
 docker compose up --build
 ```
 
-Danach läuft AllInScrum auf <http://localhost:3000>. Einen anderen Port wählt man mit
+Danach läuft AllInScrum auf <http://localhost:41400>. Einen anderen Port wählt man mit
 `HOST_PORT=8080 docker compose up --build`.
 
 Ohne Compose:
 
 ```bash
 docker build -t allinscrum .
-docker run -p 3000:3000 allinscrum
+docker run -p 41400:41400 allinscrum
 ```
 
 Das Image enthält nur Node, den gebündelten Server und das gebaute Frontend (kein
@@ -54,7 +54,7 @@ klaren Fehlermeldung.
 
 | Variable                       | Standard                        | Bedeutung                                                            |
 | ------------------------------ | ------------------------------- | -------------------------------------------------------------------- |
-| `PORT`                         | `3000`                          | Port des HTTP- und WebSocket-Servers                                 |
+| `PORT`                         | `41400`                         | Port des HTTP- und WebSocket-Servers                                 |
 | `HOST`                         | `0.0.0.0`                       | Adresse, an die der Server bindet                                    |
 | `SESSION_IDLE_TIMEOUT_MINUTES` | `60`                            | Sessions ohne Aktivität werden danach gelöscht                       |
 | `ADMIN_HANDOVER_SECONDS`       | `30`                            | So lange darf der Admin getrennt sein, bevor die Rolle weiterwandert |

@@ -81,7 +81,7 @@ apps/web            React + Vite + Motion
 
 ```bash
 npm install          # einmalig
-npm run dev          # Server (Port 3000, belegt → freier Port) + Vite (Port 5173) mit Hot Reload
+npm run dev          # Server (Port 41400, belegt → freier Port) + Vite (Port 5173) mit Hot Reload
 npm test             # alle Unit- und Integrationstests
 npm run test:watch   # TDD-Modus
 npm run test:e2e     # Playwright (vorher: npx playwright install chromium)

@@ -17,7 +17,7 @@ RUN npm run build
 # ---- Laufzeit: nur Node, das Server-Bundle und die statischen Dateien – kein node_modules ----
 FROM node:24-alpine
 ENV NODE_ENV=production \
-    PORT=3000 \
+    PORT=41400 \
     STATIC_DIR=/app/public
 WORKDIR /app
 
@@ -25,7 +25,7 @@ COPY --from=build /app/apps/server/dist/ ./
 COPY --from=build /app/apps/web/dist/ ./public/
 
 USER node
-EXPOSE 3000
+EXPOSE 41400
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:' + process.env.PORT + '/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
 CMD ["node", "--enable-source-maps", "main.js"]

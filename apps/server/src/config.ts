@@ -23,7 +23,7 @@ const MINUTE = 60 * SECOND;
 export function loadConfig(env: Environment): AppConfig {
   const number = (name: string, fallback: number) => readNumber(env, name, fallback);
   return {
-    port: number('PORT', 3000),
+    port: number('PORT', 41400),
     host: env['HOST'] ?? '0.0.0.0',
     sessionIdleTimeoutMs: number('SESSION_IDLE_TIMEOUT_MINUTES', 60) * MINUTE,
     adminHandoverAfterMs: number('ADMIN_HANDOVER_SECONDS', 30) * SECOND,

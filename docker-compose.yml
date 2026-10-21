@@ -1,11 +1,11 @@
 # Startet AllInScrum als einzelnen Container: docker compose up --build
-# Erreichbar unter http://localhost:3000 (anderer Port: HOST_PORT=8080 docker compose up --build)
+# Erreichbar unter http://localhost:41400 (anderer Port: HOST_PORT=8080 docker compose up --build)
 services:
   allinscrum:
     build: .
     image: allinscrum:latest
     ports:
-      - '${HOST_PORT:-3000}:3000'
+      - '${HOST_PORT:-41400}:41400'
     # Alle Werte sind optional – hier stehen die Standardwerte.
     environment:
       SESSION_IDLE_TIMEOUT_MINUTES: 60 # Sessions ohne Aktivität werden danach gelöscht

@@ -4,10 +4,10 @@ import { createServer } from 'node:net';
 /*
  * Startet Realtime-Server und Vite gemeinsam. PORT gilt für die Oberfläche (Vite),
  * der Server läuft intern auf ALLINSCRUM_SERVER_PORT – Vite reicht /socket.io dorthin durch.
- * Ohne Vorgabe nimmt der Server Port 3000 oder, falls der belegt ist, einen freien.
+ * Ohne Vorgabe nimmt der Server Port 41400 oder, falls der belegt ist, einen freien.
  */
 const webPort = process.env.PORT ?? '5173';
-const serverPort = process.env.ALLINSCRUM_SERVER_PORT ?? String(await availablePort(3000));
+const serverPort = process.env.ALLINSCRUM_SERVER_PORT ?? String(await availablePort(41400));
 
 const processes = [
   start('server', ['run', 'dev', '-w', '@allinscrum/server'], { PORT: serverPort }),

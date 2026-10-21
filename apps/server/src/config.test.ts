@@ -5,7 +5,7 @@ import { loadConfig } from './config.ts';
 describe('loadConfig', () => {
   it('liefert sinnvolle Standardwerte ohne Umgebungsvariablen', () => {
     expect(loadConfig({})).toEqual({
-      port: 3000,
+      port: 41400,
       host: '0.0.0.0',
       sessionIdleTimeoutMs: 60 * 60_000,
       adminHandoverAfterMs: 30_000,
