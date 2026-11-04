@@ -120,6 +120,17 @@ export function attachRealtimeGateway(
       onMemberCommand((session, me) => session.transferAdmin(me, parsePlayerId(raw)))(ack),
     );
 
+    // Erst den Entfernten wegschicken, dann verteilen – sonst sähe er den Tisch noch ohne sich.
+    socket.on('player:remove', (raw, ack) =>
+      respond(ack, () => {
+        const { session, playerId: me } = seatOf(socket);
+        const removed = parsePlayerId(raw);
+        session.removePlayer(me, removed);
+        void dismissPlayer(session.joinCode, removed).then(() => broadcastSession(session));
+        return null;
+      }),
+    );
+
     socket.on('session:leave', (ack) =>
       respond(ack, () => {
         actAsMember(socket, (session, me) => session.leave(me));
@@ -167,12 +178,17 @@ export function attachRealtimeGateway(
     socket: RealtimeSocket,
     action: (session: Session, playerId: string) => void,
   ): null {
-    const membership = socket.data.membership;
-    if (!membership) throw new DomainError('not-a-member');
-    const session = registry.get(membership.joinCode);
-    action(session, membership.playerId);
+    const { session, playerId } = seatOf(socket);
+    action(session, playerId);
     void broadcastSession(session);
     return null;
+  }
+
+  /** Session und Spieler hinter diesem Socket – wer nicht am Tisch sitzt, darf nichts tun. */
+  function seatOf(socket: RealtimeSocket): { session: Session; playerId: string } {
+    const membership = socket.data.membership;
+    if (!membership) throw new DomainError('not-a-member');
+    return { session: registry.get(membership.joinCode), playerId: membership.playerId };
   }
 
   function seat(socket: RealtimeSocket, session: Session, playerId: string): void {
@@ -203,13 +219,27 @@ export function attachRealtimeGateway(
   }
 
   /** Schickt alle Spieler einer gelöschten Session vom Tisch. */
-  async function closeSession(joinCode: string, reason: SessionClosedReason): Promise<void> {
+  function closeSession(joinCode: string, reason: SessionClosedReason): Promise<void> {
+    return dismiss(joinCode, reason, () => true);
+  }
+
+  /** Schickt einen vom Admin entfernten Spieler vom Tisch – in jedem seiner Tabs. */
+  function dismissPlayer(joinCode: string, playerId: string): Promise<void> {
+    return dismiss(joinCode, 'removed', (member) => member === playerId);
+  }
+
+  async function dismiss(
+    joinCode: string,
+    reason: SessionClosedReason,
+    concerns: (playerId: string | undefined) => boolean,
+  ): Promise<void> {
     const room = roomOf(joinCode);
     for (const member of await server.in(room).fetchSockets()) {
+      if (!concerns(member.data.membership?.playerId)) continue;
       delete member.data.membership;
       member.emit('session:closed', reason);
+      member.leave(room);
     }
-    server.in(room).socketsLeave(room);
   }
 
   return {

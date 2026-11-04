@@ -35,7 +35,8 @@ export type Ack<T = null> =
 
 export type AckCallback<T = null> = (response: Ack<T>) => void;
 
-export type SessionClosedReason = 'expired';
+/** expired: Session wegen Inaktivität gelöscht · removed: vom Admin vom Tisch genommen */
+export type SessionClosedReason = 'expired' | 'removed';
 
 export interface ClientToServerEvents {
   'session:create': (request: CreateSessionRequest, ack: AckCallback<Membership>) => void;
@@ -49,9 +50,12 @@ export interface ClientToServerEvents {
   /** Sich selbst als Zuschauer aus der Schätzung nehmen (true) oder wieder einsteigen (false). */
   'player:spectate': (spectating: boolean, ack: AckCallback) => void;
   'admin:transfer': (playerId: string, ack: AckCallback) => void;
+  /** Nur für den Admin: nimmt einen Spieler ganz vom Tisch. Er erhält 'session:closed' ('removed'). */
+  'player:remove': (playerId: string, ack: AckCallback) => void;
 }
 
 export interface ServerToClientEvents {
   'session:state': (view: SessionView) => void;
+  /** Für diesen Client ist der Tisch zu – er sitzt nicht mehr daran. */
   'session:closed': (reason: SessionClosedReason) => void;
 }

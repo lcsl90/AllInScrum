@@ -213,6 +213,66 @@ describe('Realtime-Protokoll', () => {
     });
   });
 
+  describe('Vom Tisch nehmen', () => {
+    it('lässt den Admin einen Spieler entfernen und schickt ihn vom Tisch', async () => {
+      const { alice, bob, bobMembership } = await tableWithAliceAndBob();
+
+      const response = await alice.emit('player:remove', bobMembership.playerId);
+
+      expect(response).toEqual({ ok: true, data: null });
+      await alice.viewWhere((v) => v.players.length === 1);
+      expect(await bob.closed()).toBe('removed');
+      expect(await bob.emit('round:vote', '5')).toEqual({ ok: false, error: 'not-a-member' });
+    });
+
+    it('schickt den Entfernten in jedem offenen Tab vom Tisch', async () => {
+      const { alice, joinCode, bobMembership } = await tableWithAliceAndBob();
+      const secondTab = await server.connect();
+      await secondTab.emit('session:join', {
+        joinCode,
+        profile: profile('Bob'),
+        resumeToken: bobMembership.resumeToken,
+      });
+
+      await alice.emit('player:remove', bobMembership.playerId);
+
+      expect(await secondTab.closed()).toBe('removed');
+    });
+
+    it('zeigt dem Entfernten den Tisch danach nicht mehr', async () => {
+      const { alice, bob, joinCode, bobMembership } = await tableWithAliceAndBob();
+      const carol = await server.connect();
+      await carol.emit('session:join', { joinCode, profile: profile('Carol') });
+
+      await alice.emit('player:remove', bobMembership.playerId);
+      await alice.emit('round:start');
+      await carol.viewWhere((v) => v.phase === 'voting');
+
+      expect(bob.view?.players.map((player) => player.name)).toContain('Bob');
+    });
+
+    it('lässt die übrigen Spieler am Tisch', async () => {
+      const { alice, bob, joinCode, bobMembership } = await tableWithAliceAndBob();
+      const carol = await server.connect();
+      await carol.emit('session:join', { joinCode, profile: profile('Carol') });
+
+      await alice.emit('player:remove', bobMembership.playerId);
+      await bob.closed();
+
+      expect(carol.closedReason).toBeUndefined();
+      expect(alice.closedReason).toBeUndefined();
+    });
+
+    it('weist manipulierte Daten ab', async () => {
+      const { alice } = await tableWithAliceAndBob();
+
+      expect(await alice.emitUntyped('player:remove', { playerId: 'bob' })).toEqual({
+        ok: false,
+        error: 'invalid-payload',
+      });
+    });
+  });
+
   describe('Aufräumen', () => {
     it('schließt inaktive Sessions und informiert alle am Tisch', async () => {
       const { alice, bob } = await tableWithAliceAndBob();
