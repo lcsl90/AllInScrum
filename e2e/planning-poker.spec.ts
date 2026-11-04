@@ -90,6 +90,47 @@ test.describe('Planning Poker am Tisch', () => {
     await expect(card).toHaveAttribute('aria-pressed', 'true');
   });
 
+  test('der Admin nimmt einen Spieler vom Tisch – die Runde wartet nicht mehr auf ihn', async ({
+    openTable,
+    joinTable,
+  }) => {
+    const alice = await openTable('Alice');
+    const bob = await joinTable(alice.joinCode, 'Bob');
+    const carol = await joinTable(alice.joinCode, 'Carol');
+    await alice.page.getByRole('button', { name: 'Runde starten' }).click();
+    await alice.hand.getByRole('button', { name: 'Karte 3', exact: true }).click();
+    await bob.hand.getByRole('button', { name: 'Karte 5', exact: true }).click();
+
+    await alice.page.getByRole('button', { name: 'Aktionen für Carol' }).click();
+    await alice.page.getByRole('menuitem', { name: 'Vom Tisch entfernen' }).click();
+
+    await expect(carol.page.getByRole('heading', { name: 'Vom Tisch genommen' })).toBeVisible();
+    await expect(alice.page.getByText('2 von 2 haben geschätzt')).toBeVisible();
+    await expect(alice.page.getByRole('button', { name: 'Aufdecken' })).toBeEnabled();
+  });
+
+  test('der Join-Code lässt sich auch über http im LAN kopieren', async ({ openTable }) => {
+    const { page, joinCode } = await openTable('Alice');
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    // Ohne sicheren Kontext fehlt die Clipboard-API – zum Nachlesen bleibt sie hier versteckt greifbar.
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'hiddenClipboard', { value: navigator.clipboard });
+      Object.defineProperty(Navigator.prototype, 'clipboard', { get: () => undefined });
+    });
+    await page.reload();
+
+    await page
+      .getByRole('button', { name: `Join-Code ${joinCode} kopieren` })
+      .first()
+      .click();
+
+    await expect(page.getByText('Kopiert!')).toBeVisible();
+    const copied = await page.evaluate(() =>
+      (window as unknown as { hiddenClipboard: Clipboard }).hiddenClipboard.readText(),
+    );
+    expect(copied).toBe(joinCode);
+  });
+
   test('ein unbekannter Code führt zu einer verständlichen Meldung', async ({ openTable }) => {
     const { page } = await openTable('Alice');
 
