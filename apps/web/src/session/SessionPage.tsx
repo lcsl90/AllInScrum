@@ -1,4 +1,4 @@
-import type { ErrorCode } from '@allinscrum/protocol';
+import type { ErrorCode, SessionClosedReason } from '@allinscrum/protocol';
 import { motion } from 'motion/react';
 import { useProfile } from '../profile/ProfileContext.tsx';
 import { ProfileEditor } from '../profile/ProfileEditor.tsx';
@@ -23,12 +23,7 @@ export function SessionPage(props: { joinCode: string }) {
         />
       );
     case 'closed':
-      return (
-        <SessionNotice
-          title="Tisch abgeräumt"
-          message="Die Session wurde beendet, weil längere Zeit niemand etwas getan hat."
-        />
-      );
+      return <SessionNotice {...CLOSED_NOTICES[connection.reason]} />;
     case 'seated':
       if (connection.view) return <PokerTable view={connection.view} online={online} />;
       return <TakingSeat />;
@@ -36,6 +31,18 @@ export function SessionPage(props: { joinCode: string }) {
       return <TakingSeat />;
   }
 }
+
+const CLOSED_NOTICES: Record<SessionClosedReason, { title: string; message: string }> = {
+  expired: {
+    title: 'Tisch abgeräumt',
+    message: 'Die Session wurde beendet, weil längere Zeit niemand etwas getan hat.',
+  },
+  removed: {
+    title: 'Vom Tisch genommen',
+    message:
+      'Der Admin hat dich vom Tisch genommen. Mit dem Join-Code kannst du jederzeit wieder Platz nehmen.',
+  },
+};
 
 function failureTitle(error: ErrorCode): string {
   if (error === 'session-not-found') return 'Tisch nicht gefunden';

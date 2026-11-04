@@ -13,6 +13,15 @@ function renderSessionPage() {
   return renderApp(<SessionPage joinCode="K7Q-X2M" />, { path: '/s/K7Q-X2M' });
 }
 
+/** Wie im echten Betrieb: Der Beitritt ist bestätigt, bevor der Server den Tisch schließen kann. */
+async function renderSeatedSessionPage() {
+  saveProfile(alice);
+  const rendered = renderSessionPage();
+  rendered.client.pushState(buildView({ name: 'Sprint 42' }));
+  await screen.findByRole('heading', { name: 'Sprint 42' });
+  return rendered;
+}
+
 describe('Session-Seite', () => {
   it('setzt sich mit gemerktem Namen automatisch an den Tisch', async () => {
     saveProfile(alice);
@@ -73,13 +82,32 @@ describe('Session-Seite', () => {
   });
 
   it('meldet, wenn die Session wegen Inaktivität geschlossen wurde', async () => {
-    saveProfile(alice);
-    const { client } = renderSessionPage();
-    client.pushState(buildView());
+    const { client } = await renderSeatedSessionPage();
 
     client.pushClosed('expired');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('längere Zeit niemand etwas getan');
+    expect(await screen.findByRole('heading', { name: 'Tisch abgeräumt' })).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('längere Zeit niemand etwas getan');
+  });
+
+  it('erklärt, dass der Admin einen vom Tisch genommen hat', async () => {
+    const { client } = await renderSeatedSessionPage();
+
+    client.pushClosed('removed');
+
+    expect(await screen.findByRole('heading', { name: 'Vom Tisch genommen' })).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Der Admin hat dich vom Tisch genommen');
+  });
+
+  it('setzt einen Entfernten nach einem Verbindungsabbruch nicht heimlich wieder hin', async () => {
+    const { client } = await renderSeatedSessionPage();
+    client.pushClosed('removed');
+    const joinsBefore = client.callsOf('joinSession').length;
+
+    client.pushConnection(false);
+    client.pushConnection(true);
+
+    expect(client.callsOf('joinSession')).toHaveLength(joinsBefore);
   });
 
   it('setzt sich nach einem Verbindungsabbruch automatisch wieder auf den Platz', async () => {
