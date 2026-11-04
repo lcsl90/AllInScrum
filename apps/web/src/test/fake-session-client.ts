@@ -56,6 +56,7 @@ export class FakeSessionClient implements SessionClient {
   reveal = (...args: unknown[]) => this.record('reveal', args);
   setSpectating = (...args: unknown[]) => this.record('setSpectating', args);
   transferAdmin = (...args: unknown[]) => this.record('transferAdmin', args);
+  removePlayer = (...args: unknown[]) => this.record('removePlayer', args);
 
   onState(listener: (view: SessionView) => void): Unsubscribe {
     this.stateListeners.add(listener);

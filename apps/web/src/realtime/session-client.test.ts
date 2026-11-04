@@ -65,6 +65,28 @@ describe('SessionClient gegen den echten Server', () => {
     await eventually(() => hostViews.at(-1)?.players[0]?.isSpectator === true);
   });
 
+  it('nimmt als Admin einen Spieler vom Tisch – der erfährt es sofort', async () => {
+    const host = connectClient();
+    const guest = connectClient();
+    const closedReasons: string[] = [];
+    guest.onClosed((reason) => closedReasons.push(reason));
+    const created = await host.createSession({
+      sessionName: 'Sprint 42',
+      profile: { name: 'Alice', avatar: null },
+    });
+    if (!created.ok) throw new Error(created.error);
+    const joined = await guest.joinSession({
+      joinCode: created.data.joinCode,
+      profile: { name: 'Bob', avatar: null },
+    });
+    if (!joined.ok) throw new Error(joined.error);
+
+    const removed = await host.removePlayer(joined.data.playerId);
+
+    expect(removed).toEqual({ ok: true, data: null });
+    await eventually(() => closedReasons.includes('removed'));
+  });
+
   it('meldet einen nicht erreichbaren Server, statt ewig zu warten', async () => {
     const socket = io('http://127.0.0.1:9', { reconnection: false, autoConnect: false });
     const client = createSessionClient(socket, { ackTimeoutMs: 50 });
