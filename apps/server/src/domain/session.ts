@@ -97,7 +97,7 @@ export class Session {
 
   leave(playerId: string): void {
     this.assertMember(playerId);
-    this.removePlayer(playerId);
+    this.vacateSeat(playerId);
     this.touch();
   }
 
@@ -115,6 +115,14 @@ export class Session {
     const removedSomeone = this.removePlayersOfflineLongerThan(policy.removeOfflineAfterMs);
     const handedOver = this.handOverAdminIfOfflineLongerThan(policy.adminHandoverAfterMs);
     return removedSomeone || handedOver;
+  }
+
+  /** Der Admin nimmt einen Spieler ganz vom Tisch – samt Platz und Karte. */
+  removePlayer(by: string, playerId: string): void {
+    this.assertAdmin(by);
+    this.assertPlayerExists(playerId);
+    this.vacateSeat(playerId);
+    this.touch();
   }
 
   transferAdmin(by: string, to: string): void {
@@ -202,7 +210,7 @@ export class Session {
     return [...this.players.values()].find((player) => player.resumeToken === resumeToken);
   }
 
-  private removePlayer(playerId: string): void {
+  private vacateSeat(playerId: string): void {
     this.players.delete(playerId);
     this.spectators.delete(playerId);
     this.round?.forget(playerId);
@@ -215,7 +223,7 @@ export class Session {
     const absent = [...this.players.values()].filter((player) =>
       this.isOfflineLongerThan(player, milliseconds),
     );
-    absent.forEach((player) => this.removePlayer(player.id));
+    absent.forEach((player) => this.vacateSeat(player.id));
     return absent.length > 0;
   }
 

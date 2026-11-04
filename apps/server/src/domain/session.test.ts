@@ -562,6 +562,62 @@ describe('Session', () => {
     });
   });
 
+  describe('Spieler vom Tisch entfernen', () => {
+    it('nimmt den Spieler vom Tisch – das Aufdecken wartet nicht mehr auf ihn', () => {
+      const session = createSession();
+      const [alice, bob, carol] = seat(session, 'Alice', 'Bob', 'Carol');
+      session.startRound(alice.playerId);
+      session.vote(alice.playerId, '3');
+      session.vote(bob.playerId, '5');
+
+      session.removePlayer(alice.playerId, carol.playerId);
+
+      const view = session.viewFor(alice.playerId);
+      expect(view.players.map((player) => player.name)).toEqual(['Alice', 'Bob']);
+      expect(view.canReveal).toBe(true);
+    });
+
+    it('ist dem Admin vorbehalten', () => {
+      const session = createSession();
+      const [, bob, carol] = seat(session, 'Alice', 'Bob', 'Carol');
+
+      expect(() => session.removePlayer(bob.playerId, carol.playerId)).toThrowDomainError(
+        'not-admin',
+      );
+    });
+
+    it('gilt nur für Spieler am Tisch', () => {
+      const session = createSession();
+      const [alice] = seat(session, 'Alice', 'Bob');
+
+      expect(() => session.removePlayer(alice.playerId, 'fremd')).toThrowDomainError(
+        'player-not-found',
+      );
+    });
+
+    it('vergibt den Platz endgültig – wer zurückkommt, setzt sich als neuer Spieler', () => {
+      const session = createSession();
+      const [alice, bob] = seat(session, 'Alice', 'Bob');
+      session.removePlayer(alice.playerId, bob.playerId);
+
+      const rejoined = session.join({ profile: profile('Bob'), resumeToken: bob.resumeToken });
+
+      expect(rejoined.playerId).not.toBe(bob.playerId);
+    });
+
+    it('zählt als Aktivität am Tisch', () => {
+      const clock = new FakeClock();
+      const session = createSession({ clock: clock.now });
+      const [alice, bob] = seat(session, 'Alice', 'Bob');
+      clock.advance(minutes(50));
+
+      session.removePlayer(alice.playerId, bob.playerId);
+      clock.advance(minutes(50));
+
+      expect(session.isIdleLongerThan(minutes(60))).toBe(false);
+    });
+  });
+
   describe('Admin-Rolle übergeben', () => {
     it('macht den gewählten Spieler zum Admin', () => {
       const session = createSession();
