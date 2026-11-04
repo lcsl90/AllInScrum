@@ -40,6 +40,16 @@ describe('Pokertisch', () => {
       expect(await screen.findByText('Kopiert!')).toBeInTheDocument();
     });
 
+    it('sagt ehrlich Bescheid, wenn der Browser das Kopieren verweigert', async () => {
+      const { user } = renderTable(buildView({ joinCode: 'K7Q-X2M' }));
+      withLegacyClipboardOnly({ copySucceeds: false });
+
+      await user.click(screen.getByRole('button', { name: 'Join-Code K7Q-X2M kopieren' }));
+
+      expect(await screen.findByText('Kopieren nicht möglich')).toBeInTheDocument();
+      expect(screen.queryByText('Kopiert!')).not.toBeInTheDocument();
+    });
+
     it('kopiert alternativ den direkten Einladungslink', async () => {
       const { user } = renderTable(buildView({ joinCode: 'K7Q-X2M' }));
 

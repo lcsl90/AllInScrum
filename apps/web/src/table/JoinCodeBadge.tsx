@@ -6,7 +6,7 @@ import styles from './JoinCodeBadge.module.css';
 
 /** Der Join-Code zum Weiterschicken – per Klick in der Zwischenablage, wahlweise als Link. */
 export function JoinCodeBadge({ joinCode, large = false }: { joinCode: string; large?: boolean }) {
-  const { copy, copied } = useClipboard();
+  const { copy, outcome } = useClipboard();
 
   return (
     <div className={styles.badge} data-large={large}>
@@ -29,15 +29,17 @@ export function JoinCodeBadge({ joinCode, large = false }: { joinCode: string; l
         <LinkIcon size={large ? 20 : 16} />
       </button>
       <AnimatePresence>
-        {copied && (
+        {outcome && (
           <motion.span
-            className={styles.copied}
+            key={outcome}
+            className={styles.feedback}
+            data-outcome={outcome}
             role="status"
             initial={{ opacity: 0, y: 6, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6 }}
           >
-            Kopiert!
+            {outcome === 'copied' ? 'Kopiert!' : 'Kopieren nicht möglich'}
           </motion.span>
         )}
       </AnimatePresence>
