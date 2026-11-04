@@ -348,6 +348,22 @@ describe('Pokertisch', () => {
       expect(client.callsOf('transferAdmin')).toEqual([['bob']]);
     });
 
+    it('nimmt einen Spieler ganz vom Tisch – auch zwischen den Runden', async () => {
+      const { user, client } = renderTable(
+        buildView({
+          players: [
+            buildPlayer({ id: 'me', name: 'Alice', isAdmin: true }),
+            buildPlayer({ id: 'bob' }),
+          ],
+        }),
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Aktionen für Bob' }));
+      await user.click(screen.getByRole('menuitem', { name: 'Vom Tisch entfernen' }));
+
+      expect(client.callsOf('removePlayer')).toEqual([['bob']]);
+    });
+
     it('steht anderen Spielern nicht zur Verfügung', () => {
       renderTable(asGuest({ phase: 'voting', round: 1 }));
 

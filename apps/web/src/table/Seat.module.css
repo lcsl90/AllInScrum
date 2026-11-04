@@ -118,3 +118,7 @@
 .menuItem:focus-visible {
   background: var(--color-surface-strong);
 }
+
+.menuItem[data-destructive='true'] {
+  color: var(--color-danger);
+}

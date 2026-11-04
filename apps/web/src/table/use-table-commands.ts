@@ -26,6 +26,7 @@ export function useTableCommands() {
       ignorePlayer: (playerId: string, ignored: boolean) =>
         run(() => client.ignorePlayer(playerId, ignored)),
       transferAdmin: (playerId: string) => run(() => client.transferAdmin(playerId)),
+      removePlayer: (playerId: string) => run(() => client.removePlayer(playerId)),
     };
   }, [client, toast]);
 }

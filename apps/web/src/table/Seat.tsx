@@ -9,6 +9,8 @@ import styles from './Seat.module.css';
 export interface SeatAction {
   readonly label: string;
   readonly onSelect: () => void;
+  /** Nicht rückgängig zu machen – wird hervorgehoben. */
+  readonly destructive?: boolean;
 }
 
 interface SeatProps {
@@ -114,6 +116,7 @@ function SeatMenu({ playerName, actions, children }: SeatMenuProps) {
                   type="button"
                   role="menuitem"
                   className={styles.menuItem}
+                  data-destructive={action.destructive ?? false}
                   onClick={() => {
                     setOpen(false);
                     action.onSelect();

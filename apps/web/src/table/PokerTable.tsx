@@ -199,5 +199,10 @@ function adminActionsFor(
   return [
     ...(view.phase === 'voting' && !player.isSpectator ? [ignoreAction] : []),
     { label: 'Zum Admin machen', onSelect: () => commands.transferAdmin(player.id) },
+    {
+      label: 'Vom Tisch entfernen',
+      onSelect: () => commands.removePlayer(player.id),
+      destructive: true,
+    },
   ];
 }
