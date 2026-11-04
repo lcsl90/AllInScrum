@@ -20,7 +20,9 @@ als einzelner Docker-Container.
   dem Aufdecken umschwenkt, steht mit seiner neuen Karte einzeln da – die alte schaut darunter
   hervor. Bei Einigkeit gibt es Konfetti.
 - **Admin-Rolle:** Der Ersteller startet Runden, deckt auf, lässt Abwesende eine Runde aussetzen
-  und kann die Rolle weitergeben. Ist der Admin länger getrennt, wandert sie automatisch weiter.
+  oder nimmt sie ganz vom Tisch und kann die Rolle weitergeben. Ist der Admin länger getrennt,
+  wandert sie automatisch weiter. Wer entfernt wurde, kann mit dem Join-Code als neuer Spieler
+  wieder Platz nehmen.
 - **Robust:** Nach einem Reload oder Verbindungsabbruch sitzt man wieder auf seinem Platz – mit
   seiner Karte. Mehrere Tabs desselben Spielers sind kein Problem.
 - **Flüchtig:** Alles lebt im Arbeitsspeicher. Sessions ohne Aktivität werden nach 60 Minuten
