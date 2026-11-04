@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { copyText } from './clipboard.ts';
 
 const FEEDBACK_MS = 1_800;
 
@@ -10,11 +11,7 @@ export function useClipboard() {
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const copy = useCallback(async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      return;
-    }
+    if (!(await copyText(text))) return;
     setCopied(true);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setCopied(false), FEEDBACK_MS);

@@ -3,6 +3,7 @@ import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { rememberMembership, resumeTokenFor } from '../realtime/membership-store.ts';
 import { buildPlayer, buildView } from '../test/builders.ts';
+import { withLegacyClipboardOnly } from '../test/legacy-clipboard.ts';
 import { renderApp } from '../test/render-app.tsx';
 import { PokerTable } from './PokerTable.tsx';
 
@@ -26,6 +27,16 @@ describe('Pokertisch', () => {
       await user.click(screen.getByRole('button', { name: 'Join-Code K7Q-X2M kopieren' }));
 
       expect(await navigator.clipboard.readText()).toBe('K7Q-X2M');
+      expect(await screen.findByText('Kopiert!')).toBeInTheDocument();
+    });
+
+    it('kopiert den Join-Code auch über eine unverschlüsselte Verbindung im LAN', async () => {
+      const { user } = renderTable(buildView({ joinCode: 'K7Q-X2M' }));
+      const clipboard = withLegacyClipboardOnly();
+
+      await user.click(screen.getByRole('button', { name: 'Join-Code K7Q-X2M kopieren' }));
+
+      expect(clipboard.copiedText).toBe('K7Q-X2M');
       expect(await screen.findByText('Kopiert!')).toBeInTheDocument();
     });
 
