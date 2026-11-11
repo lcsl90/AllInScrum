@@ -271,8 +271,9 @@ export class Session {
     if (!this.players.has(playerId)) throw new DomainError('player-not-found');
   }
 
+  /** Jeder am Tisch darf starten – der Ablauf hängt an niemandem allein. */
   private startRoundViolation(by: string): ErrorCode | null {
-    if (by !== this.adminId) return 'not-admin';
+    if (!this.players.has(by)) return 'not-a-member';
     if (this.phase === 'voting') return 'round-already-active';
     const estimators = this.players.size - this.spectators.size;
     if (estimators < MIN_PLAYERS_PER_ROUND) return 'not-enough-players';

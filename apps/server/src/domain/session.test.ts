@@ -136,11 +136,13 @@ describe('Session', () => {
       expect(session.viewFor(alice.playerId)).toMatchObject({ phase: 'voting', round: 1 });
     });
 
-    it('verbietet anderen Spielern das Starten', () => {
+    it('lässt jeden am Tisch starten – niemand muss auf den Admin warten', () => {
       const session = createSession();
       const [, bob] = seat(session, 'Alice', 'Bob');
 
-      expect(() => session.startRound(bob.playerId)).toThrowDomainError('not-admin');
+      session.startRound(bob.playerId);
+
+      expect(session.viewFor(bob.playerId)).toMatchObject({ phase: 'voting', round: 1 });
     });
 
     it('braucht mindestens zwei Spieler am Tisch', () => {
@@ -150,12 +152,29 @@ describe('Session', () => {
       expect(() => session.startRound(alice.playerId)).toThrowDomainError('not-enough-players');
     });
 
-    it('zeigt nur dem Admin an, dass gestartet werden kann', () => {
+    it('zeigt allen am Tisch an, dass gestartet werden kann', () => {
       const session = createSession();
       const [alice, bob] = seat(session, 'Alice', 'Bob');
 
       expect(session.viewFor(alice.playerId).canStart).toBe(true);
-      expect(session.viewFor(bob.playerId).canStart).toBe(false);
+      expect(session.viewFor(bob.playerId).canStart).toBe(true);
+    });
+
+    it('lässt auch Zuschauer starten – etwa den moderierenden Scrum Master', () => {
+      const session = createSession();
+      const [alice] = seat(session, 'Alice', 'Bob', 'Carol');
+      session.setSpectating(alice.playerId, true);
+
+      session.startRound(alice.playerId);
+
+      expect(session.viewFor(alice.playerId).phase).toBe('voting');
+    });
+
+    it('lässt Fremde nicht starten', () => {
+      const session = createSession();
+      seat(session, 'Alice', 'Bob');
+
+      expect(() => session.startRound('stranger')).toThrowDomainError('not-a-member');
     });
 
     it('kann eine laufende Runde nicht erneut starten', () => {
