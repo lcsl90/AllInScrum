@@ -1,0 +1,15 @@
+# Alle Werte sind optional – hier stehen die Standardwerte (siehe README, Abschnitt Konfiguration).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: allinscrum
+data:
+  SESSION_IDLE_TIMEOUT_MINUTES: '60'
+  ADMIN_HANDOVER_SECONDS: '30'
+  OFFLINE_REMOVAL_MINUTES: '5'
+  MAX_SESSIONS: '200'
+  MAX_PLAYERS_PER_SESSION: '16'
+  # Hinter dem Ingress-Controller kommt die echte Client-Adresse nur über X-Forwarded-For an –
+  # ohne das teilen sich alle Nutzer das Fehlversuch-Limit beim Beitreten.
+  TRUST_PROXY: 'true'
+  # CARD_DECK: '0,1,2,3,5,8,13,21,34,?,coffee'

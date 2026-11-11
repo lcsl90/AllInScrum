@@ -106,6 +106,28 @@ Der Proxy muss WebSockets durchreichen (`Upgrade`/`Connection`-Header für `/soc
 `TRUST_PROXY=true`, damit die Sperre gegen das Durchprobieren von Codes die echte
 Client-Adresse sieht – aber nur, wenn wirklich ein vertrauenswürdiger Proxy davor sitzt.
 
+## Kubernetes
+
+Unter [`deploy/k8s`](deploy/k8s) liegen Kustomize-Manifeste (Namespace, ConfigMap, Deployment,
+Service, Ingress für ingress-nginx, NetworkPolicy). Vorher in `ingress.yaml` Hostname,
+IngressClass und TLS-Secret anpassen, dann:
+
+```bash
+kubectl apply -k deploy/k8s
+```
+
+Das Image baut die GitHub Action [`image.yml`](.github/workflows/image.yml) und legt es als
+`ghcr.io/lcsl90/allinscrum` ab (`main` → `latest`, Tag `v1.2.3` → `1.2.3`). Ein anderes Image
+oder eine feste Version setzt man in `kustomization.yaml` unter `images`. Ist das Paket privat,
+braucht der Namespace ein `imagePullSecret`.
+
+Wichtig:
+
+- **Genau ein Replikat.** Sessions leben im Arbeitsspeicher eines Prozesses – mehrere Pods würden
+  Tische aufteilen. Deshalb auch `strategy: Recreate`: Jedes Deploy räumt alle Tische ab.
+- TLS endet am Ingress, der Pod spricht HTTP. `TRUST_PROXY` ist in der ConfigMap bereits `true`.
+- Der Pod läuft als UID 1000 ohne Schreibrechte, ohne Capabilities und ohne ServiceAccount-Token.
+
 ## Datenschutz
 
 Es gibt keine Konten und keine Datenbank. Name und Foto liegen im Cookie des eigenen Browsers

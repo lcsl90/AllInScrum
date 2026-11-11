@@ -1,0 +1,29 @@
+# Beispiel für ingress-nginx. TLS endet am Ingress, der Pod selbst spricht HTTP.
+# Mit cert-manager genügt die auskommentierte Annotation, sonst das Secret "allinscrum-tls"
+# selbst anlegen: kubectl -n allinscrum create secret tls allinscrum-tls --cert=cert.pem --key=key.pem
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: allinscrum
+  annotations:
+    # cert-manager.io/cluster-issuer: letsencrypt
+    # Echtzeitverbindung (WebSocket) offen halten – Socket.IO pingt ohnehin alle 25 s.
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - allinscrum.example.com
+      secretName: allinscrum-tls
+  rules:
+    - host: allinscrum.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: allinscrum
+                port:
+                  name: http
