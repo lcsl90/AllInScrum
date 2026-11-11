@@ -17,6 +17,8 @@ export class Round {
   private readonly cards = new Map<string, Card>();
   /** Stand beim Aufdecken – damit getauschte Karten sichtbar bleiben. */
   private readonly revealedCards = new Map<string, Card>();
+  /** Aufgedeckte Karten von Spielern, die inzwischen gegangen sind – sie zählen für den Verlauf. */
+  private readonly departedCards = new Map<string, Card>();
   private readonly uncertainPlayers = new Set<string>();
   private readonly ignoredPlayers = new Set<string>();
 
@@ -72,6 +74,8 @@ export class Round {
 
   /** Entfernt alle Spuren eines Spielers, der den Tisch verlassen hat. */
   forget(playerId: string): void {
+    const card = this.cards.get(playerId);
+    if (!this.isVoting && card !== undefined) this.departedCards.set(playerId, card);
     this.cards.delete(playerId);
     this.revealedCards.delete(playerId);
     this.uncertainPlayers.delete(playerId);
@@ -121,16 +125,20 @@ export class Round {
     return this.isVoting ? null : summarizeRound(this.cards, this.deck);
   }
 
-  /** Das Ergebnis für den Verlauf – null, solange die Runde nicht aufgedeckt ist. */
+  /**
+   * Das Ergebnis für den Verlauf – mit allen aufgedeckten Karten, auch von Gegangenen.
+   * null, solange die Runde nicht aufgedeckt ist.
+   */
   record(): RoundRecord | null {
     if (this.revealedAt === null) return null;
-    const result = summarizeRound(this.cards, this.deck);
+    const allCards = new Map([...this.departedCards, ...this.cards]);
+    const result = summarizeRound(allCards, this.deck);
     return {
       round: this.number,
       revealedAt: this.revealedAt,
       average: result.average,
       suggestedCard: result.suggestedCard,
-      consensusCard: result.consensus ? ([...this.cards.values()][0] ?? null) : null,
+      consensusCard: result.consensus ? ([...allCards.values()][0] ?? null) : null,
     };
   }
 

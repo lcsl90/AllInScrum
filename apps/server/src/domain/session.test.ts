@@ -817,6 +817,47 @@ describe('Session', () => {
       });
     });
 
+    it('hält das Ergebnis fest, auch wenn danach jemand den Tisch verlässt', () => {
+      const session = createSession();
+      const [alice, bob, carol] = seat(session, 'Alice', 'Bob', 'Carol');
+      session.startRound(alice.playerId);
+      session.vote(alice.playerId, '3');
+      session.vote(bob.playerId, '5');
+      session.vote(carol.playerId, '13');
+      session.reveal(alice.playerId);
+
+      session.leave(carol.playerId);
+      session.startRound(alice.playerId);
+
+      expect(session.viewFor(alice.playerId).history[0]?.average).toBe(7);
+    });
+
+    it('schließt die aufgedeckte Runde ab, wenn der Letzte geht – der Tisch wartet in der Lobby', () => {
+      const { session, alice, bob } = playedRound(['5', '8']);
+
+      session.leave(alice.playerId);
+      session.leave(bob.playerId);
+      const [carol] = seat(session, 'Carol');
+
+      expect(session.viewFor(carol.playerId)).toMatchObject({
+        phase: 'lobby',
+        history: [expect.objectContaining({ round: 1, average: 6.5 })],
+      });
+    });
+
+    it('verwirft eine nie aufgedeckte Runde, wenn der Letzte geht', () => {
+      const session = createSession();
+      const [alice, bob] = seat(session, 'Alice', 'Bob');
+      session.startRound(alice.playerId);
+      session.vote(alice.playerId, '5');
+
+      session.leave(alice.playerId);
+      session.leave(bob.playerId);
+      const [carol] = seat(session, 'Carol');
+
+      expect(session.viewFor(carol.playerId)).toMatchObject({ phase: 'lobby', history: [] });
+    });
+
     it('vergisst Runden, die länger als einen Tag zurückliegen', () => {
       const { session, clock, alice } = playedRound(['5', '8']);
       session.startRound(alice.playerId);

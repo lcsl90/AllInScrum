@@ -279,6 +279,13 @@ export class Session {
     if (playerId === this.adminId) {
       this.adminId = this.longestPresentOnlinePlayerId() ?? this.longestPresentPlayerId();
     }
+    if (this.players.size === 0) this.closeRound();
+  }
+
+  /** Ist der Tisch leer, wandert die aufgedeckte Runde in den Verlauf – das Team kommt zur Lobby zurück. */
+  private closeRound(): void {
+    this.archive(this.round);
+    this.round = null;
   }
 
   private removePlayersOfflineLongerThan(milliseconds: number): boolean {
