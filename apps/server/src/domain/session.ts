@@ -250,6 +250,13 @@ export class Session {
     return null;
   }
 
+  /** Wer die Verbindung verloren hat, hält niemanden auf – seine Karte zählt, wenn sie schon liegt. */
+  private onlinePlayerIds(): string[] {
+    return [...this.players.values()]
+      .filter((player) => player.offlineSince === null)
+      .map((player) => player.id);
+  }
+
   private isOfflineLongerThan(player: Player, milliseconds: number): boolean {
     return player.offlineSince !== null && this.clock() - player.offlineSince > milliseconds;
   }
@@ -286,7 +293,7 @@ export class Session {
   private revealViolation(by: string): ErrorCode | null {
     if (!this.players.has(by)) return 'not-a-member';
     if (!this.round?.isVoting) return 'round-not-active';
-    if (!this.round.isCompleteFor(this.players.keys())) return 'votes-missing';
+    if (!this.round.isCompleteFor(this.onlinePlayerIds())) return 'votes-missing';
     return null;
   }
 

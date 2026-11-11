@@ -149,7 +149,19 @@ describe('Realtime-Protokoll', () => {
       await alice.emit('admin:transfer', bobMembership.playerId);
 
       const view = await bob.viewWhere((v) => v.players[1]?.isAdmin === true);
-      expect(view.canStart).toBe(true);
+      expect(view.players[0]?.isAdmin).toBe(false);
+    });
+
+    it('lässt die Übrigen weiterspielen, wenn der Admin die Verbindung verliert', async () => {
+      const { alice, bob } = await tableWithAliceAndBob();
+      await alice.emit('round:start');
+      await bob.emit('round:vote', '5');
+
+      alice.disconnect();
+      await bob.viewWhere((v) => v.players[0]?.isOnline === false);
+
+      expect(await bob.emit('round:reveal')).toEqual({ ok: true, data: null });
+      expect(await bob.emit('round:start')).toEqual({ ok: true, data: null });
     });
   });
 

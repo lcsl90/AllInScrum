@@ -316,6 +316,25 @@ describe('Session', () => {
       expect(() => session.reveal(players[0].playerId)).toThrowDomainError('votes-missing');
     });
 
+    it('wartet nicht auf Spieler, deren Verbindung abgebrochen ist', () => {
+      const { session, players } = votedSession(['3', '5']);
+      const [alice, , carol] = players;
+
+      session.setOnline(carol.playerId, false);
+
+      expect(session.viewFor(alice.playerId).canReveal).toBe(true);
+    });
+
+    it('wertet die Karte eines Getrennten, die schon vor dem Abbruch lag', () => {
+      const { session, players } = votedSession(['3', '5', '8']);
+      const [alice, , carol] = players;
+      session.setOnline(carol.playerId, false);
+
+      session.reveal(alice.playerId);
+
+      expect(playerIn(session.viewFor(alice.playerId), carol)?.card).toBe('8');
+    });
+
     it('signalisiert allen am Tisch, dass aufgedeckt werden kann', () => {
       const { session, players } = votedSession(['3', '5', '8']);
 
