@@ -767,6 +767,65 @@ describe('Session', () => {
     });
   });
 
+  describe('Verlauf', () => {
+    function playedRound(cards: readonly [string, string]) {
+      const clock = new FakeClock();
+      const session = createSession({ clock: clock.now });
+      const [alice, bob] = seat(session, 'Alice', 'Bob');
+      session.startRound(alice.playerId);
+      session.vote(alice.playerId, cards[0]);
+      session.vote(bob.playerId, cards[1]);
+      session.reveal(alice.playerId);
+      return { session, clock, alice, bob, revealedAt: clock.now() };
+    }
+
+    it('hält das Ergebnis einer Runde fest, sobald die nächste beginnt', () => {
+      const { session, clock, alice, revealedAt } = playedRound(['5', '8']);
+      clock.advance(minutes(3));
+
+      session.startRound(alice.playerId);
+
+      expect(session.viewFor(alice.playerId).history).toEqual([
+        { round: 1, revealedAt, average: 6.5, suggestedCard: '8', consensusCard: null },
+      ]);
+    });
+
+    it('zeigt die gerade aufgedeckte Runde noch nicht – sie liegt in der Tischmitte', () => {
+      const { session, alice } = playedRound(['5', '8']);
+
+      expect(session.viewFor(alice.playerId).history).toEqual([]);
+    });
+
+    it('nennt die Karte, auf die sich alle geeinigt haben', () => {
+      const { session, alice } = playedRound(['5', '5']);
+
+      session.startRound(alice.playerId);
+
+      expect(session.viewFor(alice.playerId).history[0]?.consensusCard).toBe('5');
+    });
+
+    it('übernimmt Karten, die nach der Diskussion getauscht wurden', () => {
+      const { session, alice, bob } = playedRound(['3', '8']);
+      session.vote(alice.playerId, '8');
+
+      session.startRound(bob.playerId);
+
+      expect(session.viewFor(alice.playerId).history[0]).toMatchObject({
+        average: 8,
+        consensusCard: '8',
+      });
+    });
+
+    it('vergisst Runden, die länger als einen Tag zurückliegen', () => {
+      const { session, clock, alice } = playedRound(['5', '8']);
+      session.startRound(alice.playerId);
+
+      clock.advance(days(1) + minutes(1));
+
+      expect(session.viewFor(alice.playerId).history).toEqual([]);
+    });
+  });
+
   describe('Nächste Runde', () => {
     it('räumt den Tisch für die nächste Schätzung', () => {
       const session = createSession();

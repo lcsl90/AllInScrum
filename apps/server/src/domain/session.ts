@@ -5,6 +5,7 @@ import type {
   PlayerView,
   ProfileInput,
   RoundPhase,
+  RoundRecord,
   SessionView,
 } from '@allinscrum/protocol';
 import type { Clock } from './clock.ts';
@@ -16,6 +17,8 @@ import { Round } from './round.ts';
 export const MIN_PLAYERS_PER_ROUND = 2;
 export const MIN_ESTIMATORS_PER_ROUND = 1;
 export const MAX_SESSION_NAME_LENGTH = 40;
+/** Der Verlauf zeigt, was das Team heute geschätzt hat – älteres ist nicht mehr von Belang. */
+export const HISTORY_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export interface SessionSettings {
   /** Schlüssel und Adresse der Session – wer ihn kennt, darf an den Tisch. */
@@ -65,6 +68,8 @@ export class Session {
   private readonly spectators = new Set<string>();
   private adminId: string | null = null;
   private round: Round | null = null;
+  /** Ältere Runden – die laufende kommt erst hinzu, wenn die nächste beginnt. */
+  private history: RoundRecord[] = [];
   /** Wann zuletzt jemand Platz genommen hat – danach richtet sich, wie lange der Tisch bleibt. */
   private lastJoinedAt: number;
 
@@ -134,6 +139,7 @@ export class Session {
 
   startRound(by: string): void {
     throwIfViolated(this.startRoundViolation(by));
+    this.archive(this.round);
     const round = new Round((this.round?.number ?? 0) + 1, this.deck);
     this.spectators.forEach((playerId) => round.ignore(playerId, true));
     this.round = round;
@@ -168,7 +174,7 @@ export class Session {
 
   reveal(by: string): void {
     throwIfViolated(this.revealViolation(by));
-    this.activeRound().reveal();
+    this.activeRound().reveal(this.clock());
   }
 
   /** Verlassen heißt: Niemand hat Platz genommen – weder neu noch auf seinem alten Platz. */
@@ -188,11 +194,23 @@ export class Session {
       canStart: this.startRoundViolation(viewerId) === null,
       canReveal: this.revealViolation(viewerId) === null,
       result: this.round?.result() ?? null,
+      history: this.recentHistory(),
     };
   }
 
   private get phase(): RoundPhase {
     return this.round?.phase ?? 'lobby';
+  }
+
+  private archive(round: Round | null): void {
+    const record = round?.record();
+    if (record) this.history.push(record);
+    this.history = this.recentHistory();
+  }
+
+  private recentHistory(): RoundRecord[] {
+    const since = this.clock() - HISTORY_WINDOW_MS;
+    return this.history.filter((record) => record.revealedAt >= since);
   }
 
   private playerByResumeToken(resumeToken: string | undefined): Player | undefined {

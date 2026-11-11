@@ -1,4 +1,4 @@
-import type { Card, RoundResult, VoteStatus } from '@allinscrum/protocol';
+import type { Card, RoundRecord, RoundResult, VoteStatus } from '@allinscrum/protocol';
 import { SIGNAL_CARDS } from './deck.ts';
 import { DomainError } from './domain-error.ts';
 import { summarizeRound } from './round-result.ts';
@@ -7,7 +7,8 @@ import { summarizeRound } from './round-result.ts';
 export class Round {
   readonly number: number;
   private readonly deck: readonly Card[];
-  private revealed = false;
+  /** Zeitpunkt des Aufdeckens – null, solange noch geschätzt wird. */
+  private revealedAt: number | null = null;
   private readonly cards = new Map<string, Card>();
   /** Stand beim Aufdecken – damit getauschte Karten sichtbar bleiben. */
   private readonly revealedCards = new Map<string, Card>();
@@ -20,17 +21,17 @@ export class Round {
   }
 
   get phase(): 'voting' | 'revealed' {
-    return this.revealed ? 'revealed' : 'voting';
+    return this.isVoting ? 'voting' : 'revealed';
   }
 
   get isVoting(): boolean {
-    return !this.revealed;
+    return this.revealedAt === null;
   }
 
   /** Vor dem Aufdecken: Karte legen oder zurücknehmen (null). Danach: nur noch tauschen. */
   vote(playerId: string, card: Card | null): void {
     if (this.ignoredPlayers.has(playerId)) throw new DomainError('player-ignored');
-    if (this.revealed) {
+    if (!this.isVoting) {
       this.swap(playerId, card);
       return;
     }
@@ -78,9 +79,9 @@ export class Round {
     return [...playerIds].every((id) => this.cards.has(id) || this.ignoredPlayers.has(id));
   }
 
-  reveal(): void {
+  reveal(at: number): void {
     this.assertVoting();
-    this.revealed = true;
+    this.revealedAt = at;
     this.cards.forEach((card, playerId) => this.revealedCards.set(playerId, card));
   }
 
@@ -104,7 +105,7 @@ export class Round {
   /** Offen liegen alle Karten nach dem Aufdecken – Signalkarten wie "?" schon vorher. */
   isCardOpen(playerId: string): boolean {
     const card = this.cards.get(playerId);
-    return card !== undefined && (this.revealed || SIGNAL_CARDS.includes(card));
+    return card !== undefined && (!this.isVoting || SIGNAL_CARDS.includes(card));
   }
 
   isUncertain(playerId: string): boolean {
@@ -112,11 +113,24 @@ export class Round {
   }
 
   result(): RoundResult | null {
-    return this.revealed ? summarizeRound(this.cards, this.deck) : null;
+    return this.isVoting ? null : summarizeRound(this.cards, this.deck);
+  }
+
+  /** Das Ergebnis für den Verlauf – null, solange die Runde nicht aufgedeckt ist. */
+  record(): RoundRecord | null {
+    if (this.revealedAt === null) return null;
+    const result = summarizeRound(this.cards, this.deck);
+    return {
+      round: this.number,
+      revealedAt: this.revealedAt,
+      average: result.average,
+      suggestedCard: result.suggestedCard,
+      consensusCard: result.consensus ? ([...this.cards.values()][0] ?? null) : null,
+    };
   }
 
   private assertVoting(): void {
-    if (this.revealed) throw new DomainError('round-not-active');
+    if (!this.isVoting) throw new DomainError('round-not-active');
   }
 }
 

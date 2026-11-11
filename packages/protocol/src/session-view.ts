@@ -61,6 +61,17 @@ export interface RoundResult {
   readonly outliers: Outliers | null;
 }
 
+/** Eine frühere, aufgedeckte Runde – so, wie sie am Ende (nach allen Tauschen) stand. */
+export interface RoundRecord {
+  readonly round: number;
+  /** Zeitpunkt des Aufdeckens in Millisekunden seit 1970 (UTC). */
+  readonly revealedAt: number;
+  readonly average: number | null;
+  readonly suggestedCard: Card | null;
+  /** Die Karte, die alle gelegt haben – null, wenn sich das Team nicht einig war. */
+  readonly consensusCard: Card | null;
+}
+
 /** Personalisierte Sicht eines Spielers auf seine Session. */
 export interface SessionView {
   /** Schlüssel und Adresse der Session, z. B. "K7Q-X2M". Wer ihn kennt, kann beitreten. */
@@ -75,4 +86,6 @@ export interface SessionView {
   readonly canStart: boolean;
   readonly canReveal: boolean;
   readonly result: RoundResult | null;
+  /** Frühere Runden der letzten 24 Stunden, älteste zuerst – ohne die gerade aufgedeckte. */
+  readonly history: readonly RoundRecord[];
 }

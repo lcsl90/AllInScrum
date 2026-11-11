@@ -36,6 +36,7 @@ export function buildView(overrides: Partial<SessionView> = {}): SessionView {
     canStart: true,
     canReveal: false,
     result: null,
+    history: [],
     ...overrides,
   };
 }
