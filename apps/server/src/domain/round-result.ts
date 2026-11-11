@@ -1,4 +1,5 @@
 import type { Card, Estimate, Outliers, RoundResult } from '@allinscrum/protocol';
+import { SIGNAL_CARDS } from './deck.ts';
 
 /** Wertet die aufgedeckten Karten einer Runde aus – je Spieler-ID die gelegte Karte. */
 export function summarizeRound(
@@ -11,22 +12,22 @@ export function summarizeRound(
     average: mean,
     suggestedCard: mean === null ? null : nearestCard(mean, deck),
     consensus: cards.length >= 2 && new Set(cards).size === 1,
-    outliers: outliersOf(votes),
+    outliers: outliersOf(votes, deck),
   };
 }
 
-/** Die äußeren Zahlenkarten einer Runde – Sonderkarten wie "?" haben keinen Platz auf der Skala. */
-function outliersOf(votes: ReadonlyMap<string, Card>): Outliers | null {
+/**
+ * Die äußeren Schätzungen einer Runde. Die Skala ist die Reihenfolge im Deck – so funktioniert
+ * das auch für T-Shirt-Größen. Signalkarten wie "?" haben keinen Platz auf der Skala.
+ */
+function outliersOf(votes: ReadonlyMap<string, Card>, deck: readonly Card[]): Outliers | null {
   const onScale = estimatesByCard(votes)
-    .flatMap((estimate) => {
-      const value = numericValue(estimate.card);
-      return value === null ? [] : [{ estimate, value }];
-    })
-    .sort((a, b) => a.value - b.value);
+    .filter((estimate) => !SIGNAL_CARDS.includes(estimate.card))
+    .sort((a, b) => deck.indexOf(a.card) - deck.indexOf(b.card));
   const lowest = onScale.at(0);
   const highest = onScale.at(-1);
   if (!lowest || !highest || lowest === highest) return null;
-  return { lowest: lowest.estimate, highest: highest.estimate };
+  return { lowest, highest };
 }
 
 function estimatesByCard(votes: ReadonlyMap<string, Card>): Estimate[] {

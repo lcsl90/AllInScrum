@@ -54,7 +54,10 @@ export interface RoundResult {
   readonly suggestedCard: Card | null;
   /** true, wenn alle gewerteten Spieler dieselbe Karte gelegt haben. */
   readonly consensus: boolean;
-  /** Niedrigste und höchste Zahlenkarte – null, solange es keine zwei verschiedenen Zahlen gibt. */
+  /**
+   * Niedrigste und höchste Schätzung nach Reihenfolge im Deck, ohne Signalkarten wie "?" –
+   * null, solange es keine zwei verschiedenen Schätzungen gibt.
+   */
   readonly outliers: Outliers | null;
 }
 

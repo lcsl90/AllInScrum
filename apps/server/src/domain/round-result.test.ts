@@ -81,7 +81,13 @@ describe('summarizeRound', () => {
       expect(result.outliers).toMatchObject({ lowest: { card: '2' }, highest: { card: '13' } });
     });
 
-    it('lässt Sonderkarten außen vor', () => {
+    it('ordnet Karten ohne Zahl wie T-Shirt-Größen nach ihrer Reihenfolge im Deck', () => {
+      const result = summarizeRound(votesOf(['L', 'S', 'M']), ['S', 'M', 'L', '?']);
+
+      expect(result.outliers).toMatchObject({ lowest: { card: 'S' }, highest: { card: 'L' } });
+    });
+
+    it('lässt Signalkarten außen vor', () => {
       const result = summarizeRound(votesOf(['?', '8', COFFEE_CARD, '3']), DEFAULT_DECK);
 
       expect(result.outliers).toEqual({
@@ -91,7 +97,7 @@ describe('summarizeRound', () => {
     });
 
     it.each([[['5', '5']], [['5', '?']], [['5']], [['?', COFFEE_CARD]]])(
-      'gibt es nicht ohne zwei verschiedene Zahlenkarten: %j',
+      'gibt es nicht ohne zwei verschiedene Schätzungen: %j',
       (cards) => {
         expect(summarizeRound(votesOf(cards), DEFAULT_DECK).outliers).toBeNull();
       },
