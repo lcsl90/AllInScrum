@@ -86,8 +86,10 @@ function ReferenceStoryForm({ story, deck, onSave, onCancel }: ReferenceStoryFor
 
   return (
     <form className={styles.form} onSubmit={submit}>
-      <label className={styles.field} htmlFor={titleId}>
-        <span className={styles.label}>Story</span>
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor={titleId}>
+          Story
+        </label>
         <input
           id={titleId}
           className={styles.input}
@@ -97,9 +99,11 @@ function ReferenceStoryForm({ story, deck, onSave, onCancel }: ReferenceStoryFor
           autoFocus
           onChange={(event) => setTitle(event.target.value)}
         />
-      </label>
-      <label className={styles.field} htmlFor={cardId}>
-        <span className={styles.label}>Punkte</span>
+      </div>
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor={cardId}>
+          Punkte
+        </label>
         <select
           id={cardId}
           className={styles.select}
@@ -112,7 +116,7 @@ function ReferenceStoryForm({ story, deck, onSave, onCancel }: ReferenceStoryFor
             </option>
           ))}
         </select>
-      </label>
+      </div>
       <div className={styles.actions}>
         {story && (
           <Button variant="ghost" size="small" onClick={() => onSave(null)}>

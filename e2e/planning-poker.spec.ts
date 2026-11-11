@@ -87,6 +87,42 @@ test.describe('Planning Poker am Tisch', () => {
     await expect(mentor.getByText('Du bist dran')).toBeVisible();
   });
 
+  test('der Admin hinterlegt eine Referenzstory – alle sehen sie unter ihren Karten', async ({
+    openTable,
+    joinTable,
+  }) => {
+    const alice = await openTable('Alice');
+    const bob = await joinTable(alice.joinCode, 'Bob');
+
+    await alice.page.getByRole('button', { name: 'Referenzstory festlegen' }).click();
+    await alice.page.getByLabel('Story', { exact: true }).fill('Login-Formular');
+    await alice.page.getByLabel('Punkte', { exact: true }).selectOption('5');
+    await alice.page.getByRole('button', { name: 'Speichern' }).click();
+
+    const reference = bob.page.getByRole('region', { name: 'Referenzstory' });
+    await expect(reference).toContainText('Login-Formular');
+    await expect(reference).toContainText('5');
+  });
+
+  test('der Verlauf zeigt die heutigen Ergebnisse, sobald die nächste Runde beginnt', async ({
+    openTable,
+    joinTable,
+  }) => {
+    const alice = await openTable('Alice');
+    const bob = await joinTable(alice.joinCode, 'Bob');
+    await alice.page.getByRole('button', { name: 'Runde starten' }).click();
+    await alice.hand.getByRole('button', { name: 'Karte 8', exact: true }).click();
+    await bob.hand.getByRole('button', { name: 'Karte 8', exact: true }).click();
+    await bob.page.getByRole('button', { name: 'Aufdecken' }).click();
+
+    await bob.page.getByRole('button', { name: 'Nächste Runde' }).click();
+
+    const history = alice.page.getByRole('complementary', { name: 'Heute geschätzt' });
+    await expect(history.getByRole('listitem')).toHaveCount(1);
+    await expect(history).toContainText('Runde 1');
+    await expect(history).toContainText('einig');
+  });
+
   test('nach einem Reload sitzt man wieder auf seinem Platz – mit seiner Karte', async ({
     openTable,
     joinTable,
