@@ -51,6 +51,42 @@ test.describe('Planning Poker am Tisch', () => {
     await expect(alice.page.getByRole('button', { name: 'Aufdecken' })).toBeEnabled();
   });
 
+  test('zu zweit: Schaut der Admin nur zu, spielt der andere die Runde allein durch', async ({
+    openTable,
+    joinTable,
+  }) => {
+    const alice = await openTable('Alice');
+    const bob = await joinTable(alice.joinCode, 'Bob');
+
+    await alice.page.getByRole('button', { name: 'Nur zuschauen' }).click();
+    await bob.page.getByRole('button', { name: 'Runde starten' }).click();
+    await bob.hand.getByRole('button', { name: 'Karte 5', exact: true }).click();
+    await bob.page.getByRole('button', { name: 'Aufdecken' }).click();
+
+    await expect(alice.page.getByText(/im Schnitt/)).toHaveText(
+      'Das Team hat im Schnitt 5 Storypoints gegeben.',
+    );
+    await expect(bob.page.getByRole('button', { name: 'Nächste Runde' })).toBeEnabled();
+  });
+
+  test('der Scrum-Mentor bittet die niedrigste und die höchste Schätzung um Begründung', async ({
+    openTable,
+    joinTable,
+  }) => {
+    const alice = await openTable('Alice');
+    const bob = await joinTable(alice.joinCode, 'Bob');
+    await alice.page.getByRole('button', { name: 'Runde starten' }).click();
+    await alice.hand.getByRole('button', { name: 'Karte 3', exact: true }).click();
+    await bob.hand.getByRole('button', { name: 'Karte 13', exact: true }).click();
+
+    await bob.page.getByRole('button', { name: 'Aufdecken' }).click();
+
+    const mentor = bob.page.getByRole('complementary', { name: 'Scrum-Mentor' });
+    await expect(mentor).toContainText('Alice hat am niedrigsten geschätzt (3)');
+    await expect(mentor).toContainText('Bob hat am höchsten geschätzt (13)');
+    await expect(mentor.getByText('Du bist dran')).toBeVisible();
+  });
+
   test('nach einem Reload sitzt man wieder auf seinem Platz – mit seiner Karte', async ({
     openTable,
     joinTable,
