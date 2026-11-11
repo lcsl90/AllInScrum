@@ -20,9 +20,6 @@ const appear = {
 
 /** Die Tischmitte: Hier passiert, was gerade dran ist – Start, Fortschritt, Ergebnis. */
 export function CenterStage({ view, commands }: CenterStageProps) {
-  const me = view.players.find((player) => player.id === view.youId);
-  const isAdmin = me?.isAdmin ?? false;
-
   return (
     <div className={styles.stage} data-phase={view.phase}>
       <AnimatePresence mode="wait">
@@ -34,44 +31,30 @@ export function CenterStage({ view, commands }: CenterStageProps) {
 
         {view.phase === 'lobby' && view.players.length > 1 && (
           <motion.div key="lobby" className={styles.progress} {...appear}>
-            {isAdmin ? (
-              <>
-                <Button variant="primary" disabled={!view.canStart} onClick={commands.startRound}>
-                  Runde starten
-                </Button>
-                {!view.canStart && (
-                  <p className={styles.hint}>Für eine Runde braucht es mindestens zwei.</p>
-                )}
-              </>
-            ) : (
-              <p className={styles.hint}>
-                Warte, bis {adminName(view.players)} die Runde startet …
-              </p>
-            )}
+            <Button variant="primary" disabled={!view.canStart} onClick={commands.startRound}>
+              Runde starten
+            </Button>
+            {!view.canStart && <StartBlockedHint />}
           </motion.div>
         )}
 
         {view.phase === 'voting' && (
           <motion.div key={`voting-${view.round}`} className={styles.progress} {...appear}>
             <VotingProgress players={view.players} />
-            {isAdmin && (
-              <Button variant="primary" disabled={!view.canReveal} onClick={commands.reveal}>
-                Aufdecken
-              </Button>
-            )}
+            <Button variant="primary" disabled={!view.canReveal} onClick={commands.reveal}>
+              Aufdecken
+            </Button>
           </motion.div>
         )}
 
         {view.phase === 'revealed' && view.result && (
           <motion.div key={`revealed-${view.round}`} className={styles.progress} {...appear}>
             <RoundResultPanel result={view.result} players={view.players} deck={view.deck} />
-            {isAdmin ? (
-              <Button variant="primary" disabled={!view.canStart} onClick={commands.startRound}>
-                Nächste Runde
-              </Button>
-            ) : (
-              !view.result.consensus && <p className={styles.hint}>Diskutiert die Ausreißer!</p>
-            )}
+            {!view.result.consensus && <p className={styles.hint}>Diskutiert die Ausreißer!</p>}
+            <Button variant="primary" disabled={!view.canStart} onClick={commands.startRound}>
+              Nächste Runde
+            </Button>
+            {!view.canStart && <StartBlockedHint />}
           </motion.div>
         )}
       </AnimatePresence>
@@ -96,6 +79,11 @@ function VotingProgress({ players }: { players: readonly PlayerView[] }) {
   );
 }
 
-function adminName(players: readonly PlayerView[]): string {
-  return players.find((player) => player.isAdmin)?.name ?? 'der Admin';
+/** Ob gestartet werden darf, entscheidet der Server – hier steht nur, woran es liegen kann. */
+function StartBlockedHint() {
+  return (
+    <p className={styles.hint}>
+      Für eine Runde braucht es zwei am Tisch und mindestens eine Person, die mitschätzt.
+    </p>
+  );
 }

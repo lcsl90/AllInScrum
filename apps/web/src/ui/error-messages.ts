@@ -12,7 +12,8 @@ const MESSAGES: Record<ErrorCode, string> = {
   'not-a-member': 'Du sitzt nicht mehr an diesem Tisch.',
   'player-not-found': 'Diesen Spieler gibt es am Tisch nicht mehr.',
   'not-admin': 'Das darf nur der Admin.',
-  'not-enough-players': 'Für eine Runde braucht es mindestens zwei Spieler.',
+  'not-enough-players':
+    'Für eine Runde braucht es zwei am Tisch und mindestens eine Person, die mitschätzt.',
   'round-not-active': 'Gerade läuft keine Schätzrunde.',
   'round-already-active': 'Es läuft bereits eine Schätzrunde.',
   'invalid-card': 'Diese Karte gibt es im Deck nicht.',

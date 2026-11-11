@@ -120,14 +120,24 @@ describe('Pokertisch', () => {
 
       await user.click(screen.getByRole('button', { name: 'Runde starten' }));
 
-      expect(await screen.findByText(/mindestens zwei Spieler/)).toBeInTheDocument();
+      expect(
+        await screen.findByText(/zwei am Tisch und mindestens eine Person/),
+      ).toBeInTheDocument();
     });
 
-    it('lässt alle anderen auf den Admin warten', () => {
-      renderTable(asGuest());
+    it('lässt auch Mitspieler die Runde starten – niemand wartet auf den Admin', async () => {
+      const { user, client } = renderTable(asGuest({ canStart: true }));
 
-      expect(screen.queryByRole('button', { name: 'Runde starten' })).not.toBeInTheDocument();
-      expect(screen.getByText(/Warte, bis Alice die Runde startet/)).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Runde starten' }));
+
+      expect(client.callsOf('startRound')).toHaveLength(1);
+    });
+
+    it('erklärt, warum noch nicht gestartet werden kann', () => {
+      renderTable(asGuest({ canStart: false }));
+
+      expect(screen.getByRole('button', { name: 'Runde starten' })).toBeDisabled();
+      expect(screen.getByText(/mindestens eine Person, die mitschätzt/)).toBeInTheDocument();
     });
   });
 
@@ -227,7 +237,15 @@ describe('Pokertisch', () => {
       expect(screen.getByText('1 von 2 haben geschätzt')).toBeInTheDocument();
     });
 
-    it('lässt den Admin erst aufdecken, wenn der Server es erlaubt', async () => {
+    it('lässt auch Mitspieler aufdecken', async () => {
+      const { user, client } = renderTable(voting({ youId: 'bob', canReveal: true }));
+
+      await user.click(screen.getByRole('button', { name: 'Aufdecken' }));
+
+      expect(client.callsOf('reveal')).toHaveLength(1);
+    });
+
+    it('lässt erst aufdecken, wenn der Server es erlaubt', async () => {
       const { rerender, user, client } = renderTable(voting({ canReveal: false }));
       expect(screen.getByRole('button', { name: 'Aufdecken' })).toBeDisabled();
 
@@ -545,8 +563,8 @@ describe('Pokertisch', () => {
       expect(screen.queryByText('Diskutiert die Ausreißer!')).not.toBeInTheDocument();
     });
 
-    it('lässt den Admin die nächste Runde starten', async () => {
-      const { user, client } = renderTable(revealed({ canStart: true }));
+    it('lässt jeden die nächste Runde starten', async () => {
+      const { user, client } = renderTable(revealed({ youId: 'bob', canStart: true }));
 
       await user.click(screen.getByRole('button', { name: 'Nächste Runde' }));
 
