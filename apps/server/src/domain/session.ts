@@ -31,6 +31,22 @@ export interface SessionSettings {
   readonly clock: Clock;
 }
 
+/**
+ * Was einen Neustart des Servers übersteht: der Tisch selbst – ohne Spieler und ohne laufende
+ * Runde. Wer wiederkommt, nimmt neu Platz.
+ */
+export interface SessionSnapshot {
+  readonly joinCode: string;
+  readonly name: string;
+  readonly deck: readonly Card[];
+  readonly lastJoinedAt: number;
+  readonly roundsPlayed: number;
+  readonly history: readonly RoundRecord[];
+  readonly referenceStory: ReferenceStory | null;
+}
+
+export type RestoreSettings = Pick<SessionSettings, 'maxPlayers' | 'clock'>;
+
 export interface JoinRequest {
   readonly profile: ProfileInput;
   readonly resumeToken?: string | undefined;
@@ -70,6 +86,7 @@ export class Session {
   private readonly spectators = new Set<string>();
   private adminId: string | null = null;
   private round: Round | null = null;
+  private roundsPlayed = 0;
   /** Ältere Runden – die laufende kommt erst hinzu, wenn die nächste beginnt. */
   private history: RoundRecord[] = [];
   private referenceStory: ReferenceStory | null = null;
@@ -83,6 +100,32 @@ export class Session {
     this.maxPlayers = settings.maxPlayers;
     this.clock = settings.clock;
     this.lastJoinedAt = settings.clock();
+  }
+
+  /** Baut einen Tisch aus seinem Snapshot wieder auf – leer, bereit für die Rückkehr des Teams. */
+  static restore(snapshot: SessionSnapshot, settings: RestoreSettings): Session {
+    const { joinCode, name, deck } = snapshot;
+    const session = new Session({ joinCode, name, deck, ...settings });
+    session.lastJoinedAt = snapshot.lastJoinedAt;
+    session.roundsPlayed = snapshot.roundsPlayed;
+    session.history = [...snapshot.history];
+    session.referenceStory =
+      snapshot.referenceStory && parseReferenceStory(snapshot.referenceStory, snapshot.deck);
+    return session;
+  }
+
+  /** Der Tisch ohne Spieler – die zuletzt aufgedeckte Runde wandert dabei in den Verlauf. */
+  toSnapshot(): SessionSnapshot {
+    const current = this.round?.record();
+    return {
+      joinCode: this.joinCode,
+      name: this.name,
+      deck: this.deck,
+      lastJoinedAt: this.lastJoinedAt,
+      roundsPlayed: this.roundsPlayed,
+      history: current ? [...this.recentHistory(), current] : this.recentHistory(),
+      referenceStory: this.referenceStory,
+    };
   }
 
   /** Setzt einen neuen Spieler an den Tisch – oder einen zurückkehrenden auf seinen alten Platz. */
@@ -149,7 +192,8 @@ export class Session {
   startRound(by: string): void {
     throwIfViolated(this.startRoundViolation(by));
     this.archive(this.round);
-    const round = new Round((this.round?.number ?? 0) + 1, this.deck);
+    this.roundsPlayed += 1;
+    const round = new Round(this.roundsPlayed, this.deck);
     this.spectators.forEach((playerId) => round.ignore(playerId, true));
     this.round = round;
   }

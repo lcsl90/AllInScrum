@@ -882,6 +882,69 @@ describe('Session', () => {
     });
   });
 
+  describe('Neustart', () => {
+    /** Spielt eine Runde mit Referenzstory durch und baut die Session aus ihrem Snapshot neu auf. */
+    function restartedAfterPlaying() {
+      const clock = new FakeClock();
+      const session = createSession({ joinCode: 'K7Q-X2M', name: 'Team Rot', clock: clock.now });
+      const [alice, bob] = seat(session, 'Alice', 'Bob');
+      session.setReferenceStory(alice.playerId, { title: 'Login', card: '5' });
+      session.startRound(alice.playerId);
+      session.vote(alice.playerId, '3');
+      session.vote(bob.playerId, '5');
+      session.reveal(alice.playerId);
+      const restarted = Session.restore(session.toSnapshot(), { maxPlayers: 16, clock: clock.now });
+      return { restarted, clock, revealedAt: clock.now() };
+    }
+
+    it('behält Join-Code, Namen und Referenzstory', () => {
+      const { restarted } = restartedAfterPlaying();
+      const [carol] = seat(restarted, 'Carol');
+
+      expect(restarted.viewFor(carol.playerId)).toMatchObject({
+        joinCode: 'K7Q-X2M',
+        name: 'Team Rot',
+        referenceStory: { title: 'Login', card: '5' },
+      });
+    });
+
+    it('nimmt die zuletzt aufgedeckte Runde in den Verlauf mit', () => {
+      const { restarted, revealedAt } = restartedAfterPlaying();
+      const [carol] = seat(restarted, 'Carol');
+
+      expect(restarted.viewFor(carol.playerId).history).toEqual([
+        { round: 1, revealedAt, average: 4, suggestedCard: '5', consensusCard: null },
+      ]);
+    });
+
+    it('zählt die Runden weiter', () => {
+      const { restarted } = restartedAfterPlaying();
+      const [carol] = seat(restarted, 'Carol', 'Dave');
+
+      restarted.startRound(carol.playerId);
+
+      expect(restarted.viewFor(carol.playerId).round).toBe(2);
+    });
+
+    it('beginnt mit leerem Tisch – wer zuerst wieder Platz nimmt, wird Admin', () => {
+      const { restarted } = restartedAfterPlaying();
+      const [carol] = seat(restarted, 'Carol');
+
+      expect(restarted.viewFor(carol.playerId)).toMatchObject({
+        phase: 'lobby',
+        players: [expect.objectContaining({ name: 'Carol', isAdmin: true })],
+      });
+    });
+
+    it('rechnet die Aufbewahrungsfrist ab dem letzten Beitritt vor dem Neustart', () => {
+      const { restarted, clock } = restartedAfterPlaying();
+
+      clock.advance(days(29));
+
+      expect(restarted.isAbandonedLongerThan(days(28))).toBe(true);
+    });
+  });
+
   describe('Nächste Runde', () => {
     it('räumt den Tisch für die nächste Schätzung', () => {
       const session = createSession();
