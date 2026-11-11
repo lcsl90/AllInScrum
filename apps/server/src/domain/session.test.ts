@@ -316,13 +316,29 @@ describe('Session', () => {
       expect(() => session.reveal(players[0].playerId)).toThrowDomainError('votes-missing');
     });
 
-    it('signalisiert nur dem Admin, dass aufgedeckt werden kann', () => {
+    it('signalisiert allen am Tisch, dass aufgedeckt werden kann', () => {
       const { session, players } = votedSession(['3', '5', '8']);
-      const [alice, bob] = players;
 
-      expect(session.viewFor(alice.playerId).canReveal).toBe(true);
-      expect(session.viewFor(bob.playerId).canReveal).toBe(false);
-      expect(() => session.reveal(bob.playerId)).toThrowDomainError('not-admin');
+      expect(players.map((player) => session.viewFor(player.playerId).canReveal)).toEqual([
+        true,
+        true,
+        true,
+      ]);
+    });
+
+    it('lässt jeden am Tisch aufdecken', () => {
+      const { session, players } = votedSession(['3', '5', '8']);
+      const [, bob] = players;
+
+      session.reveal(bob.playerId);
+
+      expect(session.viewFor(bob.playerId).phase).toBe('revealed');
+    });
+
+    it('lässt Fremde nicht aufdecken', () => {
+      const { session } = votedSession(['3', '5', '8']);
+
+      expect(() => session.reveal('stranger')).toThrowDomainError('not-a-member');
     });
 
     it('kann eine Runde nur einmal aufdecken', () => {

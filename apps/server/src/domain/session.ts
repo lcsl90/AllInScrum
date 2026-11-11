@@ -284,7 +284,7 @@ export class Session {
   }
 
   private revealViolation(by: string): ErrorCode | null {
-    if (by !== this.adminId) return 'not-admin';
+    if (!this.players.has(by)) return 'not-a-member';
     if (!this.round?.isVoting) return 'round-not-active';
     if (!this.round.isCompleteFor(this.players.keys())) return 'votes-missing';
     return null;
