@@ -35,7 +35,7 @@ export type Ack<T = null> =
 
 export type AckCallback<T = null> = (response: Ack<T>) => void;
 
-/** expired: Session wegen Inaktivität gelöscht · removed: vom Admin vom Tisch genommen */
+/** expired: Session gelöscht, weil wochenlang niemand Platz genommen hat · removed: vom Admin vom Tisch genommen */
 export type SessionClosedReason = 'expired' | 'removed';
 
 export interface ClientToServerEvents {

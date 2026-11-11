@@ -4,7 +4,8 @@ import { DEFAULT_DECK } from './domain/deck.ts';
 export interface AppConfig {
   readonly port: number;
   readonly host: string;
-  readonly sessionIdleTimeoutMs: number;
+  /** So lange bleibt ein Tisch bestehen, an dem niemand mehr Platz nimmt. */
+  readonly sessionRetentionMs: number;
   readonly adminHandoverAfterMs: number;
   readonly removeOfflineAfterMs: number;
   readonly maxSessions: number;
@@ -25,6 +26,7 @@ type Environment = Readonly<Record<string, string | undefined>>;
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
+const DAY = 24 * 60 * MINUTE;
 
 /** Liest die Konfiguration aus Umgebungsvariablen (siehe README/docker-compose.yml). */
 export function loadConfig(env: Environment): AppConfig {
@@ -32,10 +34,10 @@ export function loadConfig(env: Environment): AppConfig {
   return {
     port: number('PORT', 41400),
     host: env['HOST'] ?? '0.0.0.0',
-    sessionIdleTimeoutMs: number('SESSION_IDLE_TIMEOUT_MINUTES', 60) * MINUTE,
+    sessionRetentionMs: number('SESSION_RETENTION_DAYS', 28) * DAY,
     adminHandoverAfterMs: number('ADMIN_HANDOVER_SECONDS', 30) * SECOND,
     removeOfflineAfterMs: number('OFFLINE_REMOVAL_MINUTES', 5) * MINUTE,
-    maxSessions: number('MAX_SESSIONS', 200),
+    maxSessions: number('MAX_SESSIONS', 1000),
     maxPlayersPerSession: number('MAX_PLAYERS_PER_SESSION', 16),
     deck: readDeck(env, 'CARD_DECK', DEFAULT_DECK),
     trustProxy: ['true', '1'].includes(env['TRUST_PROXY']?.trim().toLowerCase() ?? ''),

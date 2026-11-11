@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FakeClock, minutes, seconds } from '../../test/support/fake-clock.ts';
+import { days, FakeClock, minutes, seconds } from '../../test/support/fake-clock.ts';
 import { DEFAULT_DECK } from '../domain/deck.ts';
 import {
   type OpenSessionCommand,
@@ -12,7 +12,7 @@ function createRegistry(overrides: Partial<RegistrySettings> = {}) {
     deck: DEFAULT_DECK,
     maxSessions: 100,
     maxPlayersPerSession: 16,
-    sessionIdleTimeoutMs: minutes(60),
+    sessionRetentionMs: days(28),
     presence: { adminHandoverAfterMs: seconds(30), removeOfflineAfterMs: minutes(5) },
     clock: new FakeClock().now,
     ...overrides,
@@ -96,11 +96,11 @@ describe('SessionRegistry', () => {
   });
 
   describe('Aufräumen', () => {
-    it('löscht Sessions nach 60 Minuten ohne Aktivität', () => {
+    it('löscht Sessions, an denen vier Wochen lang niemand Platz genommen hat', () => {
       const clock = new FakeClock();
       const registry = createRegistry({ clock: clock.now });
       const { session } = open(registry);
-      clock.advance(minutes(61));
+      clock.advance(days(29));
 
       const outcome = registry.sweep();
 
@@ -108,11 +108,11 @@ describe('SessionRegistry', () => {
       expect(() => registry.get(session.joinCode)).toThrowDomainError('session-not-found');
     });
 
-    it('lässt aktive Sessions in Ruhe', () => {
+    it('lässt Tische stehen, an die das Team zurückkehren kann', () => {
       const clock = new FakeClock();
       const registry = createRegistry({ clock: clock.now });
       const { session } = open(registry);
-      clock.advance(minutes(30));
+      clock.advance(days(27));
 
       expect(registry.sweep()).toEqual({ expired: [], changed: [] });
       expect(registry.get(session.joinCode)).toBe(session);

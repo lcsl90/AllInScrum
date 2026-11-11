@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { days } from './support/fake-clock.ts';
 import { startTestServer, type TestServer } from './support/realtime-harness.ts';
 
 const profile = (name: string) => ({ name, avatar: null });
@@ -286,9 +287,9 @@ describe('Realtime-Protokoll', () => {
   });
 
   describe('Aufräumen', () => {
-    it('schließt inaktive Sessions und informiert alle am Tisch', async () => {
+    it('schließt verlassene Sessions und informiert alle am Tisch', async () => {
       const { alice, bob } = await tableWithAliceAndBob();
-      server.clock.advance(61 * 60_000);
+      server.clock.advance(days(29));
 
       await server.gateway.sweep();
 

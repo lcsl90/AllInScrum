@@ -11,3 +11,4 @@ export class FakeClock {
 
 export const seconds = (value: number): number => value * 1000;
 export const minutes = (value: number): number => value * 60_000;
+export const days = (value: number): number => value * 24 * 60 * 60_000;

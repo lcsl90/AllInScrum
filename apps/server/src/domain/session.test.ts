@@ -1,6 +1,6 @@
 import { COFFEE_CARD, type PlayerView, type SessionView } from '@allinscrum/protocol';
 import { describe, expect, it } from 'vitest';
-import { FakeClock, minutes, seconds } from '../../test/support/fake-clock.ts';
+import { days, FakeClock, minutes, seconds } from '../../test/support/fake-clock.ts';
 import { DEFAULT_DECK } from './deck.ts';
 import { type Membership, Session, type SessionSettings } from './session.ts';
 
@@ -57,27 +57,39 @@ describe('Session', () => {
     });
   });
 
-  describe('Inaktivität', () => {
-    it('gilt als inaktiv, wenn länger als die Frist niemand etwas getan hat', () => {
+  describe('Aufbewahrung', () => {
+    it('gilt als verlassen, wenn länger als die Frist niemand Platz genommen hat', () => {
       const clock = new FakeClock();
       const session = createSession({ clock: clock.now });
       seat(session, 'Alice', 'Bob');
 
-      clock.advance(minutes(61));
+      clock.advance(days(29));
 
-      expect(session.isIdleLongerThan(minutes(60))).toBe(true);
+      expect(session.isAbandonedLongerThan(days(28))).toBe(true);
     });
 
-    it('wird durch jede Spieleraktion wieder aktiv', () => {
+    it('bleibt bestehen, solange das Team immer wieder an den Tisch kommt', () => {
       const clock = new FakeClock();
       const session = createSession({ clock: clock.now });
-      const [alice] = seat(session, 'Alice', 'Bob');
-      clock.advance(minutes(50));
+      seat(session, 'Alice');
+      clock.advance(days(20));
 
-      session.startRound(alice.playerId);
-      clock.advance(minutes(50));
+      seat(session, 'Bob');
+      clock.advance(days(20));
 
-      expect(session.isIdleLongerThan(minutes(60))).toBe(false);
+      expect(session.isAbandonedLongerThan(days(28))).toBe(false);
+    });
+
+    it('zählt auch die Rückkehr auf den alten Platz als Beitritt', () => {
+      const clock = new FakeClock();
+      const session = createSession({ clock: clock.now });
+      const [alice] = seat(session, 'Alice');
+      clock.advance(days(20));
+
+      session.join({ profile: profile('Alice'), resumeToken: alice.resumeToken });
+      clock.advance(days(20));
+
+      expect(session.isAbandonedLongerThan(days(28))).toBe(false);
     });
   });
 
@@ -668,18 +680,6 @@ describe('Session', () => {
       const rejoined = session.join({ profile: profile('Bob'), resumeToken: bob.resumeToken });
 
       expect(rejoined.playerId).not.toBe(bob.playerId);
-    });
-
-    it('zählt als Aktivität am Tisch', () => {
-      const clock = new FakeClock();
-      const session = createSession({ clock: clock.now });
-      const [alice, bob] = seat(session, 'Alice', 'Bob');
-      clock.advance(minutes(50));
-
-      session.removePlayer(alice.playerId, bob.playerId);
-      clock.advance(minutes(50));
-
-      expect(session.isIdleLongerThan(minutes(60))).toBe(false);
     });
   });
 

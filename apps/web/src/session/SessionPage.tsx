@@ -35,7 +35,7 @@ export function SessionPage(props: { joinCode: string }) {
 const CLOSED_NOTICES: Record<SessionClosedReason, { title: string; message: string }> = {
   expired: {
     title: 'Tisch abgeräumt',
-    message: 'Die Session wurde beendet, weil längere Zeit niemand etwas getan hat.',
+    message: 'Die Session wurde beendet, weil wochenlang niemand mehr Platz genommen hat.',
   },
   removed: {
     title: 'Vom Tisch genommen',

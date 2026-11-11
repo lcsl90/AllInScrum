@@ -8,7 +8,8 @@ export interface RegistrySettings {
   readonly deck: readonly Card[];
   readonly maxSessions: number;
   readonly maxPlayersPerSession: number;
-  readonly sessionIdleTimeoutMs: number;
+  /** So lange bleibt ein Tisch bestehen, an dem niemand mehr Platz nimmt. */
+  readonly sessionRetentionMs: number;
   readonly presence: PresencePolicy;
   readonly clock: Clock;
 }
@@ -66,12 +67,12 @@ export class SessionRegistry {
     return normalized === null ? undefined : this.sessions.get(normalized);
   }
 
-  /** Löscht inaktive Sessions und setzt in den übrigen die Präsenzregeln durch. Läuft periodisch. */
+  /** Löscht verlassene Sessions und setzt in den übrigen die Präsenzregeln durch. Läuft periodisch. */
   sweep(): SweepOutcome {
     const expired: string[] = [];
     const changed: Session[] = [];
     for (const session of this.sessions.values()) {
-      if (session.isIdleLongerThan(this.settings.sessionIdleTimeoutMs)) {
+      if (session.isAbandonedLongerThan(this.settings.sessionRetentionMs)) {
         this.sessions.delete(session.joinCode);
         expired.push(session.joinCode);
       } else if (session.applyPresencePolicy(this.settings.presence)) {

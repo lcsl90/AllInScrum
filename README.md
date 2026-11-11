@@ -30,8 +30,8 @@ als einzelner Docker-Container.
   weiter. Wer entfernt wurde, kann mit dem Join-Code als neuer Spieler wieder Platz nehmen.
 - **Robust:** Nach einem Reload oder Verbindungsabbruch sitzt man wieder auf seinem Platz – mit
   seiner Karte. Mehrere Tabs desselben Spielers sind kein Problem.
-- **Flüchtig:** Alles lebt im Arbeitsspeicher. Sessions ohne Aktivität werden nach 60 Minuten
-  gelöscht, ein Neustart räumt alles ab.
+- **Tische bleiben:** Ein Team kommt mit demselben Join-Code immer wieder an seinen Tisch. Erst
+  wenn vier Wochen lang niemand Platz genommen hat, wird er gelöscht.
 
 ## Schnellstart mit Docker
 
@@ -59,20 +59,20 @@ Alle Werte sind optional und werden als Umgebungsvariablen gesetzt (siehe auch
 [`docker-compose.yml`](docker-compose.yml)). Ungültige Werte verhindern den Start mit einer
 klaren Fehlermeldung.
 
-| Variable                       | Standard                        | Bedeutung                                                            |
-| ------------------------------ | ------------------------------- | -------------------------------------------------------------------- |
-| `PORT`                         | `41400`                         | Port des HTTP- und WebSocket-Servers                                 |
-| `HOST`                         | `0.0.0.0`                       | Adresse, an die der Server bindet                                    |
-| `SESSION_IDLE_TIMEOUT_MINUTES` | `60`                            | Sessions ohne Aktivität werden danach gelöscht                       |
-| `ADMIN_HANDOVER_SECONDS`       | `30`                            | So lange darf der Admin getrennt sein, bevor die Rolle weiterwandert |
-| `OFFLINE_REMOVAL_MINUTES`      | `5`                             | So lange bleibt ein getrennter Spieler am Tisch sitzen               |
-| `MAX_SESSIONS`                 | `200`                           | Obergrenze gleichzeitiger Sessions                                   |
-| `MAX_PLAYERS_PER_SESSION`      | `16`                            | Obergrenze Spieler pro Tisch                                         |
-| `CARD_DECK`                    | `0,1,2,3,5,8,13,21,34,?,coffee` | Kommagetrennte Karten; `coffee` erscheint als Kaffeetasse            |
-| `TRUST_PROXY`                  | `false`                         | Client-Adresse aus `X-Forwarded-For` lesen (nur hinter einem Proxy)  |
-| `TLS_CERT_FILE`                | –                               | Zertifikat (PEM) – zusammen mit `TLS_KEY_FILE` schaltet es HTTPS ein |
-| `TLS_KEY_FILE`                 | –                               | Privater Schlüssel (PEM) zum Zertifikat                              |
-| `STATIC_DIR`                   | gebautes Frontend               | Verzeichnis mit `index.html` und `assets/`                           |
+| Variable                  | Standard                        | Bedeutung                                                            |
+| ------------------------- | ------------------------------- | -------------------------------------------------------------------- |
+| `PORT`                    | `41400`                         | Port des HTTP- und WebSocket-Servers                                 |
+| `HOST`                    | `0.0.0.0`                       | Adresse, an die der Server bindet                                    |
+| `SESSION_RETENTION_DAYS`  | `28`                            | Tische, an denen so lange niemand Platz nimmt, werden gelöscht       |
+| `ADMIN_HANDOVER_SECONDS`  | `30`                            | So lange darf der Admin getrennt sein, bevor die Rolle weiterwandert |
+| `OFFLINE_REMOVAL_MINUTES` | `5`                             | So lange bleibt ein getrennter Spieler am Tisch sitzen               |
+| `MAX_SESSIONS`            | `1000`                          | Obergrenze gleichzeitiger Sessions                                   |
+| `MAX_PLAYERS_PER_SESSION` | `16`                            | Obergrenze Spieler pro Tisch                                         |
+| `CARD_DECK`               | `0,1,2,3,5,8,13,21,34,?,coffee` | Kommagetrennte Karten; `coffee` erscheint als Kaffeetasse            |
+| `TRUST_PROXY`             | `false`                         | Client-Adresse aus `X-Forwarded-For` lesen (nur hinter einem Proxy)  |
+| `TLS_CERT_FILE`           | –                               | Zertifikat (PEM) – zusammen mit `TLS_KEY_FILE` schaltet es HTTPS ein |
+| `TLS_KEY_FILE`            | –                               | Privater Schlüssel (PEM) zum Zertifikat                              |
+| `STATIC_DIR`              | gebautes Frontend               | Verzeichnis mit `index.html` und `assets/`                           |
 
 Zahlenkarten fließen in den Durchschnitt ein, alle anderen Karten (`?`, `coffee` oder z. B.
 T-Shirt-Größen) nicht.

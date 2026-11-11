@@ -65,7 +65,8 @@ export class Session {
   private readonly spectators = new Set<string>();
   private adminId: string | null = null;
   private round: Round | null = null;
-  private lastActivityAt: number;
+  /** Wann zuletzt jemand Platz genommen hat – danach richtet sich, wie lange der Tisch bleibt. */
+  private lastJoinedAt: number;
 
   constructor(settings: SessionSettings) {
     this.joinCode = settings.joinCode;
@@ -73,7 +74,7 @@ export class Session {
     this.deck = settings.deck;
     this.maxPlayers = settings.maxPlayers;
     this.clock = settings.clock;
-    this.lastActivityAt = settings.clock();
+    this.lastJoinedAt = settings.clock();
   }
 
   /** Setzt einen neuen Spieler an den Tisch – oder einen zurückkehrenden auf seinen alten Platz. */
@@ -81,7 +82,7 @@ export class Session {
     const returning = this.playerByResumeToken(request.resumeToken);
     if (returning) {
       returning.offlineSince = null;
-      this.touch();
+      this.lastJoinedAt = this.clock();
       return membershipOf(returning);
     }
     if (this.players.size >= this.maxPlayers) throw new DomainError('session-full');
@@ -93,14 +94,13 @@ export class Session {
     };
     this.players.set(player.id, player);
     this.adminId ??= player.id;
-    this.touch();
+    this.lastJoinedAt = this.clock();
     return membershipOf(player);
   }
 
   leave(playerId: string): void {
     this.assertMember(playerId);
     this.vacateSeat(playerId);
-    this.touch();
   }
 
   setOnline(playerId: string, online: boolean): void {
@@ -124,14 +124,12 @@ export class Session {
     this.assertAdmin(by);
     this.assertPlayerExists(playerId);
     this.vacateSeat(playerId);
-    this.touch();
   }
 
   transferAdmin(by: string, to: string): void {
     this.assertAdmin(by);
     this.assertPlayerExists(to);
     this.adminId = to;
-    this.touch();
   }
 
   startRound(by: string): void {
@@ -139,7 +137,6 @@ export class Session {
     const round = new Round((this.round?.number ?? 0) + 1, this.deck);
     this.spectators.forEach((playerId) => round.ignore(playerId, true));
     this.round = round;
-    this.touch();
   }
 
   /** Wer nur moderiert oder zuschaut, nimmt sich selbst aus der Schätzung – und kann jederzeit zurück. */
@@ -148,20 +145,17 @@ export class Session {
     if (spectating) this.spectators.add(playerId);
     else this.spectators.delete(playerId);
     if (this.round?.isVoting) this.round.ignore(playerId, spectating);
-    this.touch();
   }
 
   /** Legt eine Karte ab; `null` nimmt die Karte zurück. */
   vote(playerId: string, card: Card | null): void {
     this.assertMember(playerId);
     this.activeRound().vote(playerId, card);
-    this.touch();
   }
 
   setUncertain(playerId: string, uncertain: boolean): void {
     this.assertMember(playerId);
     this.activeRound().setUncertain(playerId, uncertain);
-    this.touch();
   }
 
   /** Lässt einen Spieler die laufende Runde aussetzen (oder holt ihn zurück). */
@@ -170,18 +164,16 @@ export class Session {
     this.assertPlayerExists(playerId);
     if (this.spectators.has(playerId)) throw new DomainError('player-spectating');
     this.activeRound().ignore(playerId, ignored);
-    this.touch();
   }
 
   reveal(by: string): void {
     throwIfViolated(this.revealViolation(by));
     this.activeRound().reveal();
-    this.touch();
   }
 
-  /** Inaktiv heißt: Niemand hat etwas getan. Bloßes Verbundensein zählt nicht. */
-  isIdleLongerThan(milliseconds: number): boolean {
-    return this.clock() - this.lastActivityAt > milliseconds;
+  /** Verlassen heißt: Niemand hat Platz genommen – weder neu noch auf seinem alten Platz. */
+  isAbandonedLongerThan(milliseconds: number): boolean {
+    return this.clock() - this.lastJoinedAt > milliseconds;
   }
 
   viewFor(viewerId: string): SessionView {
@@ -201,10 +193,6 @@ export class Session {
 
   private get phase(): RoundPhase {
     return this.round?.phase ?? 'lobby';
-  }
-
-  private touch(): void {
-    this.lastActivityAt = this.clock();
   }
 
   private playerByResumeToken(resumeToken: string | undefined): Player | undefined {

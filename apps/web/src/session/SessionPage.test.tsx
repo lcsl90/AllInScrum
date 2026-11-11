@@ -81,13 +81,13 @@ describe('Session-Seite', () => {
     expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument();
   });
 
-  it('meldet, wenn die Session wegen Inaktivität geschlossen wurde', async () => {
+  it('meldet, wenn der Tisch nach Wochen ohne Besuch abgeräumt wurde', async () => {
     const { client } = await renderSeatedSessionPage();
 
     client.pushClosed('expired');
 
     expect(await screen.findByRole('heading', { name: 'Tisch abgeräumt' })).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent('längere Zeit niemand etwas getan');
+    expect(screen.getByRole('alert')).toHaveTextContent('wochenlang niemand mehr Platz genommen');
   });
 
   it('erklärt, dass der Admin einen vom Tisch genommen hat', async () => {

@@ -10,7 +10,7 @@ import {
   attachRealtimeGateway,
   type RealtimeGateway,
 } from '../../src/transport/realtime-gateway.ts';
-import { FakeClock, minutes, seconds } from './fake-clock.ts';
+import { days, FakeClock, minutes, seconds } from './fake-clock.ts';
 
 type ClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
@@ -80,7 +80,7 @@ export async function startTestServer(
     deck: DEFAULT_DECK,
     maxSessions: 100,
     maxPlayersPerSession: 16,
-    sessionIdleTimeoutMs: minutes(60),
+    sessionRetentionMs: days(28),
     presence: { adminHandoverAfterMs: seconds(30), removeOfflineAfterMs: minutes(5) },
     clock: clock.now,
     ...overrides,

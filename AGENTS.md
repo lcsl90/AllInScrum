@@ -46,7 +46,7 @@ Test → Implementierung → nächster Test.
 packages/protocol   Gemeinsamer Vertrag: Event-Namen, Payloads, SessionView, Fehlercodes (nur Typen)
 apps/server         Node + Socket.IO + sirv (statische Auslieferung des gebauten Frontends)
   src/domain        Reine Spiellogik ohne I/O (Session, Runde, Statistik, Regeln)
-  src/application   SessionRegistry: Anlegen, Finden, Aufräumen (Inaktivität, Präsenz)
+  src/application   SessionRegistry: Anlegen, Finden, Aufräumen (Aufbewahrungsfrist, Präsenz)
   src/transport     Socket-Gateway: Payload-Prüfung, Domänenaufrufe, personalisierte Broadcasts
   src/http          Healthcheck + statische Dateien
   src/config.ts     Konfiguration aus Umgebungsvariablen

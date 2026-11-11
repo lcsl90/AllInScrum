@@ -12,10 +12,10 @@ services:
       - '${HOST_PORT:-41400}:41400'
     # Alle Werte sind optional – hier stehen die Standardwerte.
     environment:
-      SESSION_IDLE_TIMEOUT_MINUTES: 60 # Sessions ohne Aktivität werden danach gelöscht
+      SESSION_RETENTION_DAYS: 28 # Tische, an denen so lange niemand Platz nimmt, werden gelöscht
       ADMIN_HANDOVER_SECONDS: 30 # so lange darf der Admin getrennt sein, bevor die Rolle wandert
       OFFLINE_REMOVAL_MINUTES: 5 # so lange bleibt ein getrennter Spieler am Tisch
-      MAX_SESSIONS: 200
+      MAX_SESSIONS: 1000
       MAX_PLAYERS_PER_SESSION: 16
       TRUST_PROXY: 'false' # hinter einem Reverse Proxy auf "true" setzen (X-Forwarded-For)
       # CARD_DECK: '0,1,2,3,5,8,13,21,34,?,coffee' # kommagetrennt; "coffee" erscheint als Tasse

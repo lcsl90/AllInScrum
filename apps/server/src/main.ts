@@ -25,7 +25,7 @@ const registry = new SessionRegistry({
   deck: config.deck,
   maxSessions: config.maxSessions,
   maxPlayersPerSession: config.maxPlayersPerSession,
-  sessionIdleTimeoutMs: config.sessionIdleTimeoutMs,
+  sessionRetentionMs: config.sessionRetentionMs,
   presence: {
     adminHandoverAfterMs: config.adminHandoverAfterMs,
     removeOfflineAfterMs: config.removeOfflineAfterMs,
