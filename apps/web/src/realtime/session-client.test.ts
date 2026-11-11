@@ -65,6 +65,21 @@ describe('SessionClient gegen den echten Server', () => {
     await eventually(() => hostViews.at(-1)?.players[0]?.isSpectator === true);
   });
 
+  it('hinterlegt als Admin eine Referenzstory für alle', async () => {
+    const host = connectClient();
+    const hostViews: SessionView[] = [];
+    host.onState((view) => hostViews.push(view));
+    await host.createSession({
+      sessionName: 'Sprint 42',
+      profile: { name: 'Alice', avatar: null },
+    });
+
+    const response = await host.setReferenceStory({ title: 'Login', card: '5' });
+
+    expect(response).toEqual({ ok: true, data: null });
+    await eventually(() => hostViews.at(-1)?.referenceStory?.title === 'Login');
+  });
+
   it('nimmt als Admin einen Spieler vom Tisch – der erfährt es sofort', async () => {
     const host = connectClient();
     const guest = connectClient();

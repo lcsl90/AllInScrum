@@ -1,4 +1,4 @@
-import type { Ack, Card, ErrorCode } from '@allinscrum/protocol';
+import type { Ack, Card, ErrorCode, ReferenceStory } from '@allinscrum/protocol';
 import { useMemo } from 'react';
 import { useSessionClient } from '../realtime/SessionClientContext.tsx';
 import { errorMessage } from '../ui/error-messages.ts';
@@ -33,6 +33,8 @@ export function useTableCommands() {
         run(() => client.ignorePlayer(playerId, ignored)),
       transferAdmin: (playerId: string) => run(() => client.transferAdmin(playerId)),
       removePlayer: (playerId: string) => run(() => client.removePlayer(playerId)),
+      setReferenceStory: (story: ReferenceStory | null) =>
+        run(() => client.setReferenceStory(story)),
     };
   }, [client, toast]);
 }

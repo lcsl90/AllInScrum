@@ -5,6 +5,7 @@ import type {
   CreateSessionRequest,
   JoinSessionRequest,
   Membership,
+  ReferenceStory,
   ServerToClientEvents,
   SessionClosedReason,
   SessionView,
@@ -27,6 +28,8 @@ export interface SessionClient {
   setSpectating(spectating: boolean): Promise<Ack>;
   transferAdmin(playerId: string): Promise<Ack>;
   removePlayer(playerId: string): Promise<Ack>;
+  /** Nur für den Admin – null entfernt die Referenzstory. */
+  setReferenceStory(story: ReferenceStory | null): Promise<Ack>;
   onState(listener: (view: SessionView) => void): Unsubscribe;
   onClosed(listener: (reason: SessionClosedReason) => void): Unsubscribe;
   onConnectionChange(listener: (connected: boolean) => void): Unsubscribe;
@@ -72,6 +75,7 @@ export function createSessionClient(
     setSpectating: (spectating) => request((s) => s.emitWithAck('player:spectate', spectating)),
     transferAdmin: (playerId) => request((s) => s.emitWithAck('admin:transfer', playerId)),
     removePlayer: (playerId) => request((s) => s.emitWithAck('player:remove', playerId)),
+    setReferenceStory: (story) => request((s) => s.emitWithAck('session:reference', story)),
 
     onState: (listener) => subscribe('session:state', listener),
     onClosed: (listener) => subscribe('session:closed', listener),
