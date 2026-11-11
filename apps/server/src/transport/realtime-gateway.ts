@@ -18,6 +18,7 @@ import {
   parseIgnoreRequest,
   parseJoinSessionRequest,
   parsePlayerId,
+  parseReferenceStory,
 } from './payloads.ts';
 
 /** Welcher Spieler an welchem Tisch hinter einem Socket sitzt. */
@@ -118,6 +119,12 @@ export function attachRealtimeGateway(
 
     socket.on('admin:transfer', (raw, ack) =>
       onMemberCommand((session, me) => session.transferAdmin(me, parsePlayerId(raw)))(ack),
+    );
+
+    socket.on('session:reference', (raw, ack) =>
+      onMemberCommand((session, me) => session.setReferenceStory(me, parseReferenceStory(raw)))(
+        ack,
+      ),
     );
 
     // Erst den Entfernten wegschicken, dann verteilen – sonst sähe er den Tisch noch ohne sich.

@@ -61,6 +61,12 @@ export interface RoundResult {
   readonly outliers: Outliers | null;
 }
 
+/** Ein Anker für die Skala: eine bekannte Story und die Punkte, die das Team ihr gegeben hat. */
+export interface ReferenceStory {
+  readonly title: string;
+  readonly card: Card;
+}
+
 /** Eine frühere, aufgedeckte Runde – so, wie sie am Ende (nach allen Tauschen) stand. */
 export interface RoundRecord {
   readonly round: number;
@@ -88,4 +94,6 @@ export interface SessionView {
   readonly result: RoundResult | null;
   /** Frühere Runden der letzten 24 Stunden, älteste zuerst – ohne die gerade aufgedeckte. */
   readonly history: readonly RoundRecord[];
+  /** Vom Admin hinterlegt – oder null, solange es keine gibt. */
+  readonly referenceStory: ReferenceStory | null;
 }

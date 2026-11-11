@@ -4,6 +4,7 @@ import type {
   ErrorCode,
   PlayerView,
   ProfileInput,
+  ReferenceStory,
   RoundPhase,
   RoundRecord,
   SessionView,
@@ -11,6 +12,7 @@ import type {
 import type { Clock } from './clock.ts';
 import { DomainError, throwIfViolated } from './domain-error.ts';
 import { parseProfile } from './player-profile.ts';
+import { parseReferenceStory } from './reference-story.ts';
 import { Round } from './round.ts';
 
 /** Geschätzt wird im Gespräch: Es braucht ein Gegenüber – das darf auch nur zuschauen. */
@@ -70,6 +72,7 @@ export class Session {
   private round: Round | null = null;
   /** Ältere Runden – die laufende kommt erst hinzu, wenn die nächste beginnt. */
   private history: RoundRecord[] = [];
+  private referenceStory: ReferenceStory | null = null;
   /** Wann zuletzt jemand Platz genommen hat – danach richtet sich, wie lange der Tisch bleibt. */
   private lastJoinedAt: number;
 
@@ -137,6 +140,12 @@ export class Session {
     this.adminId = to;
   }
 
+  /** Der Admin legt den Anker der Skala fest – oder entfernt ihn mit null. */
+  setReferenceStory(by: string, story: ReferenceStory | null): void {
+    this.assertAdmin(by);
+    this.referenceStory = story === null ? null : parseReferenceStory(story, this.deck);
+  }
+
   startRound(by: string): void {
     throwIfViolated(this.startRoundViolation(by));
     this.archive(this.round);
@@ -195,6 +204,7 @@ export class Session {
       canReveal: this.revealViolation(viewerId) === null,
       result: this.round?.result() ?? null,
       history: this.recentHistory(),
+      referenceStory: this.referenceStory,
     };
   }
 

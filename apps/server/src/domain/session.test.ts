@@ -2,6 +2,7 @@ import { COFFEE_CARD, type PlayerView, type SessionView } from '@allinscrum/prot
 import { describe, expect, it } from 'vitest';
 import { days, FakeClock, minutes, seconds } from '../../test/support/fake-clock.ts';
 import { DEFAULT_DECK } from './deck.ts';
+import { MAX_REFERENCE_TITLE_LENGTH } from './reference-story.ts';
 import { type Membership, Session, type SessionSettings } from './session.ts';
 
 function createSession(overrides: Partial<SessionSettings> = {}) {
@@ -823,6 +824,61 @@ describe('Session', () => {
       clock.advance(days(1) + minutes(1));
 
       expect(session.viewFor(alice.playerId).history).toEqual([]);
+    });
+  });
+
+  describe('Referenzstory', () => {
+    it('zeigt allen am Tisch die Story, die der Admin als Anker hinterlegt', () => {
+      const session = createSession();
+      const [alice, bob] = seat(session, 'Alice', 'Bob');
+
+      session.setReferenceStory(alice.playerId, { title: '  Login-Formular ', card: '5' });
+
+      expect(session.viewFor(bob.playerId).referenceStory).toEqual({
+        title: 'Login-Formular',
+        card: '5',
+      });
+    });
+
+    it('gibt es nicht, solange keine hinterlegt ist', () => {
+      const session = createSession();
+      const [alice] = seat(session, 'Alice');
+
+      expect(session.viewFor(alice.playerId).referenceStory).toBeNull();
+    });
+
+    it('lässt sich wieder entfernen', () => {
+      const session = createSession();
+      const [alice] = seat(session, 'Alice');
+      session.setReferenceStory(alice.playerId, { title: 'Login-Formular', card: '5' });
+
+      session.setReferenceStory(alice.playerId, null);
+
+      expect(session.viewFor(alice.playerId).referenceStory).toBeNull();
+    });
+
+    it('ist dem Admin vorbehalten', () => {
+      const session = createSession();
+      const [, bob] = seat(session, 'Alice', 'Bob');
+
+      expect(() =>
+        session.setReferenceStory(bob.playerId, { title: 'Login-Formular', card: '5' }),
+      ).toThrowDomainError('not-admin');
+    });
+
+    it.each([
+      { title: '   ', card: '5' },
+      { title: 'x'.repeat(MAX_REFERENCE_TITLE_LENGTH + 1), card: '5' },
+      { title: 'Login-Formular', card: '6' },
+      { title: 'Login-Formular', card: '?' },
+      { title: 'Login-Formular', card: COFFEE_CARD },
+    ])('lehnt $title mit Karte $card ab – es braucht einen Titel und einen Schätzwert', (story) => {
+      const session = createSession();
+      const [alice] = seat(session, 'Alice');
+
+      expect(() => session.setReferenceStory(alice.playerId, story)).toThrowDomainError(
+        'invalid-reference-story',
+      );
     });
   });
 

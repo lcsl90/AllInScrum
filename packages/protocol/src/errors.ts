@@ -3,6 +3,7 @@ export const ERROR_CODES = [
   'invalid-name',
   'invalid-avatar',
   'invalid-session-name',
+  'invalid-reference-story',
   'session-not-found',
   'session-full',
   'too-many-sessions',

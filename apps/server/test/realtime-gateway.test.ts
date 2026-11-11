@@ -286,6 +286,30 @@ describe('Realtime-Protokoll', () => {
     });
   });
 
+  describe('Referenzstory', () => {
+    it('lässt den Admin eine Referenzstory hinterlegen und zeigt sie allen', async () => {
+      const { alice, bob } = await tableWithAliceAndBob();
+
+      const response = await alice.emit('session:reference', { title: 'Login', card: '5' });
+
+      expect(response).toEqual({ ok: true, data: null });
+      const view = await bob.viewWhere((v) => v.referenceStory !== null);
+      expect(view.referenceStory).toEqual({ title: 'Login', card: '5' });
+    });
+
+    it.each([[{ title: 5, card: '5' }], [{ title: 'Login' }], ['Login']])(
+      'weist die manipulierte Referenzstory %j ab',
+      async (payload) => {
+        const { alice } = await tableWithAliceAndBob();
+
+        expect(await alice.emitUntyped('session:reference', payload)).toEqual({
+          ok: false,
+          error: 'invalid-payload',
+        });
+      },
+    );
+  });
+
   describe('Aufräumen', () => {
     it('schließt verlassene Sessions und informiert alle am Tisch', async () => {
       const { alice, bob } = await tableWithAliceAndBob();

@@ -4,6 +4,7 @@ import type {
   IgnorePlayerRequest,
   JoinSessionRequest,
   ProfileInput,
+  ReferenceStory,
 } from '@allinscrum/protocol';
 import { DomainError } from '../domain/domain-error.ts';
 
@@ -38,6 +39,13 @@ export function parseIgnoreRequest(raw: unknown): IgnorePlayerRequest {
 /** Eine Karte oder null zum Zurücknehmen. */
 export function parseCard(raw: unknown): Card | null {
   return raw === null ? null : asString(raw);
+}
+
+/** Eine Referenzstory oder null zum Entfernen. */
+export function parseReferenceStory(raw: unknown): ReferenceStory | null {
+  if (raw === null) return null;
+  const value = asRecord(raw);
+  return { title: asString(value['title']), card: asString(value['card']) };
 }
 
 export const parseFlag: (raw: unknown) => boolean = asBoolean;

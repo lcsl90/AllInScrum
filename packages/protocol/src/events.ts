@@ -1,5 +1,5 @@
 import type { ErrorCode } from './errors.ts';
-import type { Card, SessionView } from './session-view.ts';
+import type { Card, ReferenceStory, SessionView } from './session-view.ts';
 
 export interface ProfileInput {
   readonly name: string;
@@ -52,6 +52,8 @@ export interface ClientToServerEvents {
   'admin:transfer': (playerId: string, ack: AckCallback) => void;
   /** Nur für den Admin: nimmt einen Spieler ganz vom Tisch. Er erhält 'session:closed' ('removed'). */
   'player:remove': (playerId: string, ack: AckCallback) => void;
+  /** Nur für den Admin: hinterlegt die Referenzstory des Tisches – null entfernt sie. */
+  'session:reference': (story: ReferenceStory | null, ack: AckCallback) => void;
 }
 
 export interface ServerToClientEvents {

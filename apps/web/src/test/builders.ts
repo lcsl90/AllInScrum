@@ -38,6 +38,7 @@ export function buildView(overrides: Partial<SessionView> = {}): SessionView {
     canReveal: false,
     result: null,
     history: [],
+    referenceStory: null,
     ...overrides,
   };
 }

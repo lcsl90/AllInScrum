@@ -5,6 +5,8 @@ const MESSAGES: Record<ErrorCode, string> = {
   'invalid-name': 'Bitte gib einen Namen mit 1 bis 24 Zeichen ein.',
   'invalid-avatar': 'Das Foto konnte nicht verwendet werden.',
   'invalid-session-name': 'Bitte gib der Session einen Namen mit 1 bis 40 Zeichen.',
+  'invalid-reference-story':
+    'Die Referenzstory braucht einen Titel mit 1 bis 60 Zeichen und einen Punktwert aus dem Deck.',
   'session-not-found': 'Zu diesem Code gibt es keine Session (mehr). Prüf den Code noch mal.',
   'session-full': 'Am Tisch ist leider kein Platz mehr frei.',
   'too-many-sessions': 'Gerade laufen zu viele Sessions. Bitte versuche es später erneut.',
