@@ -30,8 +30,13 @@ als einzelner Docker-Container.
   weiter. Wer entfernt wurde, kann mit dem Join-Code als neuer Spieler wieder Platz nehmen.
 - **Robust:** Nach einem Reload oder Verbindungsabbruch sitzt man wieder auf seinem Platz – mit
   seiner Karte. Mehrere Tabs desselben Spielers sind kein Problem.
-- **Tische bleiben:** Ein Team kommt mit demselben Join-Code immer wieder an seinen Tisch. Erst
-  wenn vier Wochen lang niemand Platz genommen hat, wird er gelöscht.
+- **Tische bleiben:** Ein Team kommt mit demselben Join-Code immer wieder an seinen Tisch – auch
+  nach einem Neustart oder Update des Servers. Erst wenn vier Wochen lang niemand Platz genommen
+  hat, wird er gelöscht.
+- **Verlauf:** Links unten stehen die heutigen Schätzungen – Runde, Uhrzeit, Ergebnis und ob sich
+  alle einig waren.
+- **Referenzstory:** Der Admin hinterlegt eine bekannte Story mit ihren Punkten als Anker der
+  Skala. Sie steht für alle als kleine Plakette unter den Handkarten.
 
 ## Schnellstart mit Docker
 
@@ -51,7 +56,9 @@ docker run -p 41400:41400 allinscrum
 
 Das Image enthält nur Node, den gebündelten Server und das gebaute Frontend (kein
 `node_modules`), läuft als unprivilegierter Benutzer und bringt einen Healthcheck auf
-`/healthz` mit.
+`/healthz` mit. Die Tische liegen im Volume `/data`; Compose legt dafür das benannte Volume
+`allinscrum-data` an. Ohne Compose ein Volume mitgeben, damit sie ein neues Image überstehen:
+`docker run -p 41400:41400 -v allinscrum-data:/data allinscrum`.
 
 ## Konfiguration
 
@@ -72,6 +79,7 @@ klaren Fehlermeldung.
 | `TRUST_PROXY`             | `false`                         | Client-Adresse aus `X-Forwarded-For` lesen (nur hinter einem Proxy)  |
 | `TLS_CERT_FILE`           | –                               | Zertifikat (PEM) – zusammen mit `TLS_KEY_FILE` schaltet es HTTPS ein |
 | `TLS_KEY_FILE`            | –                               | Privater Schlüssel (PEM) zum Zertifikat                              |
+| `DATA_DIR`                | – (im Image: `/data`)           | Hier werden die Tische gesichert; leer = nur im Arbeitsspeicher      |
 | `STATIC_DIR`              | gebautes Frontend               | Verzeichnis mit `index.html` und `assets/`                           |
 
 Zahlenkarten fließen in den Durchschnitt ein, alle anderen Karten (`?`, `coffee` oder z. B.
@@ -113,8 +121,8 @@ Client-Adresse sieht – aber nur, wenn wirklich ein vertrauenswürdiger Proxy d
 
 ## Kubernetes
 
-Unter [`deploy/k8s`](deploy/k8s) liegen Kustomize-Manifeste (Namespace, ConfigMap, Deployment,
-Service, Ingress für ingress-nginx, NetworkPolicy). Vorher in `ingress.yaml` Hostname,
+Unter [`deploy/k8s`](deploy/k8s) liegen Kustomize-Manifeste (Namespace, ConfigMap,
+PersistentVolumeClaim, Deployment, Service, Ingress für ingress-nginx, NetworkPolicy). Vorher in `ingress.yaml` Hostname,
 IngressClass und TLS-Secret anpassen, dann:
 
 ```bash
@@ -128,16 +136,21 @@ braucht der Namespace ein `imagePullSecret`.
 
 Wichtig:
 
-- **Genau ein Replikat.** Sessions leben im Arbeitsspeicher eines Prozesses – mehrere Pods würden
-  Tische aufteilen. Deshalb auch `strategy: Recreate`: Jedes Deploy räumt alle Tische ab.
+- **Genau ein Replikat.** Laufende Runden leben im Arbeitsspeicher eines Prozesses – mehrere Pods
+  würden Tische aufteilen. Deshalb auch `strategy: Recreate`. Die Tische selbst überstehen ein
+  Deploy im PersistentVolumeClaim `allinscrum-data` (256 Mi, ReadWriteOnce); eine laufende Runde
+  beginnt danach neu.
 - TLS endet am Ingress, der Pod spricht HTTP. `TRUST_PROXY` ist in der ConfigMap bereits `true`.
-- Der Pod läuft als UID 1000 ohne Schreibrechte, ohne Capabilities und ohne ServiceAccount-Token.
+- Der Pod läuft als UID 1000 ohne Capabilities und ohne ServiceAccount-Token; schreiben darf er
+  nur ins Daten-Volume.
 
 ## Datenschutz
 
 Es gibt keine Konten und keine Datenbank. Name und Foto liegen im Cookie des eigenen Browsers
-und werden nur an den Tisch übertragen, an dem man sitzt. Auf dem Server existieren Sessions
-ausschließlich im Arbeitsspeicher und verschwinden nach Inaktivität oder beim Neustart.
+und werden nur an den Tisch übertragen, an dem man sitzt. Wer am Tisch sitzt, lebt nur im
+Arbeitsspeicher. Gesichert werden ausschließlich die Tische selbst: Join-Code, Tischname, Deck,
+Referenzstory und die Ergebnisse der letzten 24 Stunden – keine Namen, keine Fotos, keine
+einzelnen Karten. Nach vier Wochen ohne Besuch wird ein Tisch gelöscht.
 
 ## Entwicklung
 

@@ -1,0 +1,11 @@
+# Hier überstehen die Tische Neustarts und Deploys (DATA_DIR=/data, eine kleine JSON-Datei).
+# ReadWriteOnce genügt: Es gibt genau einen Pod, der schreibt.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: allinscrum-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 256Mi

@@ -4,9 +4,9 @@ Diese Datei richtet sich an alle (menschlichen wie KI-)Entwickler, die an diesem
 
 ## Produkt in einem Satz
 
-Realtime Planning Poker an einem virtuellen Pokertisch: ohne Registrierung, Sessions nur im
-Arbeitsspeicher, automatische Löschung nach 60 Minuten Inaktivität, als ein Docker-Container
-betreibbar.
+Realtime Planning Poker an einem virtuellen Pokertisch: ohne Registrierung, Tische bleiben für ihr
+Team bestehen (auch über Neustarts) und werden nach vier Wochen ohne Beitritt gelöscht, als ein
+Docker-Container betreibbar.
 
 ## Entwicklungsprozess: strikt TDD
 
@@ -47,6 +47,8 @@ packages/protocol   Gemeinsamer Vertrag: Event-Namen, Payloads, SessionView, Feh
 apps/server         Node + Socket.IO + sirv (statische Auslieferung des gebauten Frontends)
   src/domain        Reine Spiellogik ohne I/O (Session, Runde, Statistik, Regeln)
   src/application   SessionRegistry: Anlegen, Finden, Aufräumen (Aufbewahrungsfrist, Präsenz)
+                    SessionArchive + Port SessionStore: Tische sichern und wiederherstellen
+  src/persistence   JsonFileStore: Tische als JSON-Datei in DATA_DIR (atomar geschrieben)
   src/transport     Socket-Gateway: Payload-Prüfung, Domänenaufrufe, personalisierte Broadcasts
   src/http          Healthcheck + statische Dateien
   src/config.ts     Konfiguration aus Umgebungsvariablen
@@ -70,7 +72,9 @@ apps/web            React + Vite + Motion
 - **Tiefe Module:** kleine Schnittstellen, Komplexität dahinter verbergen.
 - **Fehler** der Domäne sind `DomainError`s mit einem `ErrorCode` aus `@allinscrum/protocol`;
   das Gateway übersetzt sie in `{ ok: false, error }`-Acks.
-- Kein Persistenz-Layer. Alles lebt im Speicher und darf beim Neustart verloren gehen.
+- Persistenz nur als Snapshot der Tische (Code, Name, Deck, Referenzstory, Verlauf) über den Port
+  `SessionStore` – keine Datenbank. Spieler, laufende Runden und Karten leben nur im Speicher und
+  dürfen beim Neustart verloren gehen.
 - Animationen respektieren `prefers-reduced-motion`.
 - Keine Emojis – weder in UI-Texten noch als Kartenwerte. Symbole sind schlanke SVG-Icons aus
   `apps/web/src/ui/icons.tsx` (z. B. die Kaffeekarte `COFFEE_CARD` als Tasse).

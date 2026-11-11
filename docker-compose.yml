@@ -23,8 +23,14 @@ services:
       TLS_KEY_FILE: ${TLS_KEY_FILE:-}
     volumes:
       - ./certs:/certs:ro
+      # Hier überstehen die Tische Neustarts und Updates des Containers.
+      - allinscrum-data:/data
     restart: unless-stopped
-    # Alles lebt im Arbeitsspeicher – der Container braucht weder Schreibrechte noch Privilegien.
+    # Geschrieben wird nur ins Daten-Volume – sonst braucht der Container weder Schreibrechte
+    # noch Privilegien.
     read_only: true
     cap_drop: [ALL]
     security_opt: ['no-new-privileges:true']
+
+volumes:
+  allinscrum-data:

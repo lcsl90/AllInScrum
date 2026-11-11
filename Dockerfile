@@ -18,11 +18,16 @@ RUN npm run build
 FROM node:24-alpine
 ENV NODE_ENV=production \
     PORT=41400 \
-    STATIC_DIR=/app/public
+    STATIC_DIR=/app/public \
+    DATA_DIR=/data
 WORKDIR /app
 
 COPY --from=build /app/apps/server/dist/ ./
 COPY --from=build /app/apps/web/dist/ ./public/
+
+# Die Tische überstehen Neustarts in /data – das einzige Verzeichnis, in das der Server schreibt.
+RUN mkdir /data && chown node:node /data
+VOLUME ["/data"]
 
 USER node
 EXPOSE 41400

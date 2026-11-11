@@ -18,6 +18,7 @@ labels:
 resources:
   - namespace.yaml
   - configmap.yaml
+  - pvc.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml

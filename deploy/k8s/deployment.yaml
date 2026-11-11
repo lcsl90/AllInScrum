@@ -3,11 +3,11 @@ kind: Deployment
 metadata:
   name: allinscrum
 spec:
-  # Genau EIN Pod: Sessions leben nur im Arbeitsspeicher dieses Prozesses. Mehr Replikate würden
+  # Genau EIN Pod: Laufende Runden leben im Arbeitsspeicher dieses Prozesses. Mehr Replikate würden
   # Tische auf verschiedene Pods verteilen – Spieler säßen dann an unterschiedlichen Tischen.
   replicas: 1
-  # Kein RollingUpdate: Alte und neue Version würden kurz parallel laufen und Sessions aufteilen.
-  # Ein Deploy räumt ohnehin alle Tische ab (gewollt, siehe README).
+  # Kein RollingUpdate: Alte und neue Version würden kurz parallel laufen, Sessions aufteilen und
+  # beide in dieselbe Datei schreiben. Die Tische selbst überstehen das Deploy im Volume.
   strategy:
     type: Recreate
   revisionHistoryLimit: 3
@@ -25,10 +25,15 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000 # Benutzer "node" aus dem Image
         runAsGroup: 1000
+        fsGroup: 1000 # damit das Daten-Volume für den Benutzer "node" beschreibbar ist
         seccompProfile:
           type: RuntimeDefault
-      # Der Server beendet Socket.IO bei SIGTERM sauber und wartet nicht auf Clients.
+      # Der Server beendet Socket.IO bei SIGTERM sauber, sichert die Tische und wartet nicht auf Clients.
       terminationGracePeriodSeconds: 15
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: allinscrum-data
       containers:
         - name: allinscrum
           image: allinscrum
@@ -40,6 +45,11 @@ spec:
           env:
             - name: PORT
               value: '41400'
+            - name: DATA_DIR
+              value: /data
+          volumeMounts:
+            - name: data
+              mountPath: /data
           envFrom:
             - configMapRef:
                 name: allinscrum
@@ -63,7 +73,8 @@ spec:
               memory: 96Mi
             limits:
               memory: 256Mi
-          # Alles lebt im Arbeitsspeicher – der Container braucht weder Schreibrechte noch Privilegien.
+          # Geschrieben wird nur ins Daten-Volume – sonst braucht der Container weder Schreibrechte
+          # noch Privilegien.
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
