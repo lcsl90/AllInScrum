@@ -1,13 +1,15 @@
 import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ClientToServerEvents, ServerToClientEvents } from '@allinscrum/protocol';
 import { Server } from 'socket.io';
 import { AttemptLimiter } from './application/attempt-limiter.ts';
+import { SessionArchive } from './application/session-archive.ts';
 import { SessionRegistry } from './application/session-registry.ts';
 import { loadConfig } from './config.ts';
 import { systemClock } from './domain/clock.ts';
 import { createHttpServer } from './http/http-server.ts';
+import { JsonFileStore } from './persistence/json-file-store.ts';
 import { forwardedClientAddress } from './transport/client-address.ts';
 import { attachRealtimeGateway } from './transport/realtime-gateway.ts';
 
@@ -33,6 +35,31 @@ const registry = new SessionRegistry({
   clock: systemClock,
 });
 
+// Ohne DATA_DIR lebt alles nur im Arbeitsspeicher – praktisch für Entwicklung und Tests.
+const archive = config.dataDir
+  ? new SessionArchive(registry, new JsonFileStore(join(config.dataDir, 'sessions.json')))
+  : null;
+
+if (archive) {
+  try {
+    const restored = await archive.restore();
+    console.log(`Gesicherte Tische wiederhergestellt: ${restored} (aus ${config.dataDir})`);
+  } catch (error) {
+    // Lieber nicht starten, als die gesicherten Tische mit einem leeren Stand zu überschreiben.
+    console.error('Gesicherte Tische konnten nicht geladen werden:', error);
+    process.exit(1);
+  }
+}
+
+/** Sichert die Tische – ein Fehler wird gemeldet, der nächste Durchlauf versucht es erneut. */
+async function persist(): Promise<void> {
+  try {
+    await archive?.flush();
+  } catch (error) {
+    console.error('Tische konnten nicht gesichert werden:', error);
+  }
+}
+
 // Sowohl src/main.ts (Entwicklung) als auch dist/main.js (Build) liegen zwei Ebenen unter apps/.
 const defaultStaticDir = resolve(dirname(fileURLToPath(import.meta.url)), '../../web/dist');
 const httpServer = createHttpServer({
@@ -56,7 +83,7 @@ const gateway = attachRealtimeGateway(io, {
   ...(config.trustProxy && { clientAddress: forwardedClientAddress }),
 });
 
-const sweepTimer = setInterval(() => void gateway.sweep(), SWEEP_INTERVAL_MS);
+const sweepTimer = setInterval(() => void gateway.sweep().then(persist), SWEEP_INTERVAL_MS);
 
 httpServer.listen(config.port, config.host, () => {
   const scheme = config.tls ? 'https' : 'http';
@@ -66,7 +93,7 @@ httpServer.listen(config.port, config.host, () => {
 function shutdown(signal: string): void {
   console.log(`${signal} empfangen – fahre herunter.`);
   clearInterval(sweepTimer);
-  void io.close(() => process.exit(0));
+  void io.close(() => void persist().then(() => process.exit(0)));
 }
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));

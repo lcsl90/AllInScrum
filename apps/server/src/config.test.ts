@@ -15,7 +15,16 @@ describe('loadConfig', () => {
       deck: ['0', '1', '2', '3', '5', '8', '13', '21', '34', '?', COFFEE_CARD],
       trustProxy: false,
       tls: null,
+      dataDir: null,
     });
+  });
+
+  it('sichert Tische in DATA_DIR, wenn das Verzeichnis angegeben ist', () => {
+    expect(loadConfig({ DATA_DIR: '/data' }).dataDir).toBe('/data');
+  });
+
+  it('bleibt bei leerem DATA_DIR rein im Arbeitsspeicher', () => {
+    expect(loadConfig({ DATA_DIR: '  ' }).dataDir).toBeNull();
   });
 
   it.each([

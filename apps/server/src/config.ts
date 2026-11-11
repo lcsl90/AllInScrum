@@ -15,6 +15,8 @@ export interface AppConfig {
   readonly trustProxy: boolean;
   /** Zertifikat und Schlüssel (PEM-Dateien) – dann spricht der Server HTTPS, sonst HTTP. */
   readonly tls: TlsFiles | null;
+  /** Verzeichnis, in dem die Tische Neustarts überstehen – null: nur im Arbeitsspeicher. */
+  readonly dataDir: string | null;
 }
 
 export interface TlsFiles {
@@ -42,6 +44,7 @@ export function loadConfig(env: Environment): AppConfig {
     deck: readDeck(env, 'CARD_DECK', DEFAULT_DECK),
     trustProxy: ['true', '1'].includes(env['TRUST_PROXY']?.trim().toLowerCase() ?? ''),
     tls: readTls(env),
+    dataDir: env['DATA_DIR']?.trim() || null,
   };
 }
 
