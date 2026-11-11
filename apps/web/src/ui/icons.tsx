@@ -79,3 +79,9 @@ export const MentorIcon = (props: IconProps) => (
     <path d="M9 10h6M9 13.5h3.5" />
   </Svg>
 );
+
+export const CheckIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M5 12.5l4.5 4.5L19 7.5" />
+  </Svg>
+);

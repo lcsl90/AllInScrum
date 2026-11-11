@@ -1,6 +1,7 @@
 import {
   COFFEE_CARD,
   type PlayerView,
+  type RoundRecord,
   type RoundResult,
   type SessionView,
 } from '@allinscrum/protocol';
@@ -44,4 +45,16 @@ export function buildView(overrides: Partial<SessionView> = {}): SessionView {
 /** Eine uneinige Runde ohne benannte Ausreißer – per Overrides beliebig anpassbar. */
 export function buildResult(overrides: Partial<RoundResult> = {}): RoundResult {
   return { average: 5, suggestedCard: '5', consensus: false, outliers: null, ...overrides };
+}
+
+/** Eine frühere Runde, heute um 10 Uhr aufgedeckt, ohne Einigkeit – per Overrides anpassbar. */
+export function buildRecord(overrides: Partial<RoundRecord> = {}): RoundRecord {
+  return {
+    round: 1,
+    revealedAt: new Date(2026, 10, 11, 10, 0).getTime(),
+    average: 5,
+    suggestedCard: '5',
+    consensusCard: null,
+    ...overrides,
+  };
 }

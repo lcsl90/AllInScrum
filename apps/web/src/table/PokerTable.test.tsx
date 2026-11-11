@@ -1,8 +1,8 @@
 import { COFFEE_CARD, type SessionView } from '@allinscrum/protocol';
 import { screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { rememberMembership, resumeTokenFor } from '../realtime/membership-store.ts';
-import { buildPlayer, buildResult, buildView } from '../test/builders.ts';
+import { buildPlayer, buildRecord, buildResult, buildView } from '../test/builders.ts';
 import { withLegacyClipboardOnly } from '../test/legacy-clipboard.ts';
 import { renderApp } from '../test/render-app.tsx';
 import { PokerTable } from './PokerTable.tsx';
@@ -669,6 +669,79 @@ describe('Pokertisch', () => {
       await user.click(screen.getByRole('button', { name: 'Nächste Runde' }));
 
       expect(client.callsOf('startRound')).toHaveLength(1);
+    });
+  });
+
+  describe('Verlauf', () => {
+    const today = (hours: number, minutes: number) =>
+      new Date(2026, 10, 11, hours, minutes).getTime();
+    const history = () => screen.getByRole('complementary', { name: 'Heute geschätzt' });
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 10, 11, 16, 0));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('zeigt die heutigen Ergebnisse, das jüngste zuerst', () => {
+      renderTable(
+        buildView({
+          history: [
+            buildRecord({ round: 1, revealedAt: today(9, 5), consensusCard: '3' }),
+            buildRecord({ round: 2, revealedAt: today(14, 32), consensusCard: '8' }),
+          ],
+        }),
+      );
+
+      const entries = within(history()).getAllByRole('listitem');
+      expect(entries.map((entry) => entry.textContent)).toEqual([
+        expect.stringMatching(/Runde 2.*14:32.*8/),
+        expect.stringMatching(/Runde 1.*09:05.*3/),
+      ]);
+    });
+
+    it('markiert Runden, in denen sich alle einig waren', () => {
+      renderTable(buildView({ history: [buildRecord({ consensusCard: '5' })] }));
+
+      expect(within(history()).getByRole('listitem')).toHaveTextContent('einig');
+    });
+
+    it('nennt bei Uneinigkeit den Kartenvorschlag und den Durchschnitt', () => {
+      renderTable(
+        buildView({
+          history: [buildRecord({ consensusCard: null, suggestedCard: '8', average: 6.5 })],
+        }),
+      );
+
+      const entry = within(history()).getByRole('listitem');
+      expect(entry).toHaveTextContent('8');
+      expect(entry).toHaveTextContent('Ø 6,5');
+      expect(entry).not.toHaveTextContent('einig');
+    });
+
+    it('lässt Runden von gestern weg', () => {
+      const yesterday = new Date(2026, 10, 10, 18, 0).getTime();
+      renderTable(
+        buildView({
+          history: [
+            buildRecord({ round: 1, revealedAt: yesterday }),
+            buildRecord({ round: 2, revealedAt: today(10, 0) }),
+          ],
+        }),
+      );
+
+      expect(within(history()).getAllByRole('listitem')).toHaveLength(1);
+    });
+
+    it('bleibt verborgen, solange heute noch nichts geschätzt wurde', () => {
+      renderTable(buildView({ history: [] }));
+
+      expect(
+        screen.queryByRole('complementary', { name: 'Heute geschätzt' }),
+      ).not.toBeInTheDocument();
     });
   });
 });

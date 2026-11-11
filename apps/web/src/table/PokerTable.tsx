@@ -9,6 +9,7 @@ import { CardHand } from './CardHand.tsx';
 import { CenterStage } from './CenterStage.tsx';
 import { JoinCodeBadge } from './JoinCodeBadge.tsx';
 import styles from './PokerTable.module.css';
+import { RoundHistory } from './RoundHistory.tsx';
 import { ScrumMentor } from './ScrumMentor.tsx';
 import { Seat, type SeatAction } from './Seat.tsx';
 import { SeatCard } from './SeatCard.tsx';
@@ -87,6 +88,8 @@ export function PokerTable({ view, online }: PokerTableProps) {
       <footer className={styles.handArea}>
         {me && <PlayerControls me={me} view={view} commands={commands} />}
       </footer>
+
+      <RoundHistory history={view.history} />
     </div>
   );
 }

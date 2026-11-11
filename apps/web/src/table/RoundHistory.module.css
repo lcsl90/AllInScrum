@@ -1,0 +1,107 @@
+/*
+ * Der Verlauf liegt klein in der linken Ecke und stört den Tisch nicht. Auf schmalen Bildschirmen
+ * steht er unter der Hand.
+ */
+.history {
+  justify-self: center;
+  width: min(100%, 320px);
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px 12px;
+  border-radius: var(--radius);
+  background: rgb(0 0 0 / 0.32);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(6px);
+}
+
+@media (min-width: 1280px) {
+  .history {
+    position: fixed;
+    left: 24px;
+    bottom: 24px;
+    z-index: 10;
+    width: 230px;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* Höchstens etwa sechs Einträge sichtbar, ältere per Scrollen. */
+.entries {
+  display: grid;
+  gap: 2px;
+  max-height: 196px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-areas:
+    'round card detail'
+    'time  card detail';
+  align-items: center;
+  column-gap: 10px;
+  padding: 5px 6px;
+  border-radius: var(--radius-small);
+}
+
+.entry:first-child {
+  background: rgb(255 255 255 / 0.05);
+}
+
+.round {
+  grid-area: round;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.time {
+  grid-area: time;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Das Ergebnis als kleine Spielkarte. */
+.card {
+  grid-area: card;
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 30px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--color-card);
+  color: var(--color-card-ink);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.4);
+}
+
+.detail {
+  grid-area: detail;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 46px;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.detail[data-agreed='true'] {
+  color: var(--color-success);
+  font-weight: 600;
+}
