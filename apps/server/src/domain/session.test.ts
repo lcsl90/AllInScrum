@@ -525,11 +525,22 @@ describe('Session', () => {
       });
     });
 
-    it('braucht für eine Runde mindestens zwei, die mitschätzen', () => {
+    it('lässt zu zweit schätzen, auch wenn einer nur zuschaut', () => {
       const session = createSession();
-      const [alice] = seat(session, 'Alice', 'Bob');
+      const [alice, bob] = seat(session, 'Alice', 'Bob');
+      session.setSpectating(bob.playerId, true);
+
+      session.startRound(bob.playerId);
+
+      expect(session.viewFor(alice.playerId).phase).toBe('voting');
+    });
+
+    it('braucht für eine Runde mindestens einen, der mitschätzt', () => {
+      const session = createSession();
+      const [alice, bob] = seat(session, 'Alice', 'Bob');
 
       session.setSpectating(alice.playerId, true);
+      session.setSpectating(bob.playerId, true);
 
       expect(session.viewFor(alice.playerId).canStart).toBe(false);
       expect(() => session.startRound(alice.playerId)).toThrowDomainError('not-enough-players');

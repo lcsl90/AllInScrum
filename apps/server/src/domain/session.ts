@@ -12,7 +12,9 @@ import { DomainError, throwIfViolated } from './domain-error.ts';
 import { parseProfile } from './player-profile.ts';
 import { Round } from './round.ts';
 
+/** Geschätzt wird im Gespräch: Es braucht ein Gegenüber – das darf auch nur zuschauen. */
 export const MIN_PLAYERS_PER_ROUND = 2;
+export const MIN_ESTIMATORS_PER_ROUND = 1;
 export const MAX_SESSION_NAME_LENGTH = 40;
 
 export interface SessionSettings {
@@ -276,7 +278,8 @@ export class Session {
     if (!this.players.has(by)) return 'not-a-member';
     if (this.phase === 'voting') return 'round-already-active';
     const estimators = this.players.size - this.spectators.size;
-    if (estimators < MIN_PLAYERS_PER_ROUND) return 'not-enough-players';
+    if (this.players.size < MIN_PLAYERS_PER_ROUND) return 'not-enough-players';
+    if (estimators < MIN_ESTIMATORS_PER_ROUND) return 'not-enough-players';
     return null;
   }
 
