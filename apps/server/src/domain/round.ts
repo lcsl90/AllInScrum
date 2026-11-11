@@ -112,7 +112,7 @@ export class Round {
   }
 
   result(): RoundResult | null {
-    return this.revealed ? summarizeRound([...this.cards.values()], this.deck) : null;
+    return this.revealed ? summarizeRound(this.cards, this.deck) : null;
   }
 
   private assertVoting(): void {

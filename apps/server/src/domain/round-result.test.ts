@@ -3,6 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_DECK } from './deck.ts';
 import { summarizeRound } from './round-result.ts';
 
+/** Jede Karte stammt von einem eigenen Spieler: p1, p2, … */
+function votesOf(cards: readonly string[]): Map<string, string> {
+  return new Map(cards.map((card, index) => [`p${index + 1}`, card]));
+}
+
 describe('summarizeRound', () => {
   describe('Durchschnitt', () => {
     it.each([
@@ -10,15 +15,15 @@ describe('summarizeRound', () => {
       [['5', '8'], 6.5],
       [['1', '2', '3', '5'], 2.75],
     ])('ist der echte Mittelwert der Zahlenkarten %j: %s', (cards, average) => {
-      expect(summarizeRound(cards, DEFAULT_DECK).average).toBe(average);
+      expect(summarizeRound(votesOf(cards), DEFAULT_DECK).average).toBe(average);
     });
 
     it('lässt Sonderkarten außen vor', () => {
-      expect(summarizeRound(['3', '?', COFFEE_CARD, '5'], DEFAULT_DECK).average).toBe(4);
+      expect(summarizeRound(votesOf(['3', '?', COFFEE_CARD, '5']), DEFAULT_DECK).average).toBe(4);
     });
 
     it('gibt es ohne Zahlenkarten nicht', () => {
-      expect(summarizeRound(['?', COFFEE_CARD], DEFAULT_DECK).average).toBeNull();
+      expect(summarizeRound(votesOf(['?', COFFEE_CARD]), DEFAULT_DECK).average).toBeNull();
     });
   });
 
@@ -32,7 +37,7 @@ describe('summarizeRound', () => {
     ])(
       'schlägt für %j die Karte des Decks vor, die dem Mittelwert am nächsten liegt: %s',
       (cards, card) => {
-        expect(summarizeRound(cards, DEFAULT_DECK).suggestedCard).toBe(card);
+        expect(summarizeRound(votesOf(cards), DEFAULT_DECK).suggestedCard).toBe(card);
       },
     );
 
@@ -40,15 +45,15 @@ describe('summarizeRound', () => {
       [['5', '8'], '8'],
       [['1', '2'], '2'],
     ])('nimmt bei Gleichstand (%j) die größere Karte: %s', (cards, card) => {
-      expect(summarizeRound(cards, DEFAULT_DECK).suggestedCard).toBe(card);
+      expect(summarizeRound(votesOf(cards), DEFAULT_DECK).suggestedCard).toBe(card);
     });
 
     it('gibt es ohne Zahlenkarten nicht', () => {
-      expect(summarizeRound(['?', COFFEE_CARD], DEFAULT_DECK).suggestedCard).toBeNull();
+      expect(summarizeRound(votesOf(['?', COFFEE_CARD]), DEFAULT_DECK).suggestedCard).toBeNull();
     });
 
     it('gibt es nicht bei einem Deck ohne Zahlen', () => {
-      expect(summarizeRound(['S', 'M'], ['S', 'M', 'L']).suggestedCard).toBeNull();
+      expect(summarizeRound(votesOf(['S', 'M']), ['S', 'M', 'L']).suggestedCard).toBeNull();
     });
   });
 
@@ -57,6 +62,6 @@ describe('summarizeRound', () => {
     { cards: ['5', '5', '8'], consensus: false },
     { cards: ['5'], consensus: false },
   ])('erkennt Konsens bei $cards → $consensus', ({ cards, consensus }) => {
-    expect(summarizeRound(cards, DEFAULT_DECK).consensus).toBe(consensus);
+    expect(summarizeRound(votesOf(cards), DEFAULT_DECK).consensus).toBe(consensus);
   });
 });

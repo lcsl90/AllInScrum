@@ -1,7 +1,11 @@
 import type { Card, RoundResult } from '@allinscrum/protocol';
 
-/** Wertet die aufgedeckten Karten einer Runde aus. */
-export function summarizeRound(cards: readonly Card[], deck: readonly Card[]): RoundResult {
+/** Wertet die aufgedeckten Karten einer Runde aus – je Spieler-ID die gelegte Karte. */
+export function summarizeRound(
+  votes: ReadonlyMap<string, Card>,
+  deck: readonly Card[],
+): RoundResult {
+  const cards = [...votes.values()];
   const mean = meanOf(cards.map(numericValue).filter((value) => value !== null));
   return {
     average: mean,
