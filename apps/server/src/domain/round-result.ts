@@ -1,5 +1,10 @@
-import type { Card, Estimate, Outliers, RoundResult } from '@allinscrum/protocol';
-import { SIGNAL_CARDS } from './deck.ts';
+import {
+  type Card,
+  type Estimate,
+  type Outliers,
+  type RoundResult,
+  SIGNAL_CARDS,
+} from '@allinscrum/protocol';
 
 /** Wertet die aufgedeckten Karten einer Runde aus – je Spieler-ID die gelegte Karte. */
 export function summarizeRound(

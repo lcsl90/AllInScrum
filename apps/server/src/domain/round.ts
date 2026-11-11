@@ -1,5 +1,10 @@
-import type { Card, RoundRecord, RoundResult, VoteStatus } from '@allinscrum/protocol';
-import { SIGNAL_CARDS } from './deck.ts';
+import {
+  type Card,
+  type RoundRecord,
+  type RoundResult,
+  type VoteStatus,
+  SIGNAL_CARDS,
+} from '@allinscrum/protocol';
 import { DomainError } from './domain-error.ts';
 import { summarizeRound } from './round-result.ts';
 

@@ -4,6 +4,16 @@ export type Card = string;
 /** Die Pausenkarte ("Ich brauche einen Kaffee") – das Frontend zeigt sie als Tassen-Symbol. */
 export const COFFEE_CARD: Card = 'coffee';
 
+/** "Keine Ahnung" – die Story ist unklar. */
+export const UNKNOWN_CARD: Card = '?';
+
+/**
+ * Karten ohne Schätzwert, die etwas signalisieren: Klärungsbedarf oder Pausenwunsch. Sie verraten
+ * keine Zahl, an der sich andere orientieren könnten – deshalb liegen sie sofort offen, und das
+ * Team kann reagieren, ohne die Runde erst zu Ende zu spielen.
+ */
+export const SIGNAL_CARDS: readonly Card[] = [UNKNOWN_CARD, COFFEE_CARD];
+
 /** lobby: noch keine Runde gestartet · voting: Karten werden gelegt · revealed: aufgedeckt */
 export type RoundPhase = 'lobby' | 'voting' | 'revealed';
 

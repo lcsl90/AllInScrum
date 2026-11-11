@@ -1,5 +1,4 @@
-import type { Card, ReferenceStory } from '@allinscrum/protocol';
-import { SIGNAL_CARDS } from './deck.ts';
+import { type Card, type ReferenceStory, SIGNAL_CARDS } from '@allinscrum/protocol';
 import { DomainError } from './domain-error.ts';
 
 export const MAX_REFERENCE_TITLE_LENGTH = 60;
