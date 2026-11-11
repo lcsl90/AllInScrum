@@ -409,7 +409,15 @@ describe('Pokertisch', () => {
           buildPlayer({ id: 'bob', status: 'voted', card: '8', uncertain: true }),
           buildPlayer({ id: 'carol', status: 'voted', card: '5' }),
         ],
-        result: buildResult({ average: 6, suggestedCard: '5', consensus: false }),
+        result: buildResult({
+          average: 6,
+          suggestedCard: '5',
+          consensus: false,
+          outliers: {
+            lowest: { card: '5', playerIds: ['me', 'carol'] },
+            highest: { card: '8', playerIds: ['bob'] },
+          },
+        }),
         ...overrides,
       });
 
@@ -564,21 +572,85 @@ describe('Pokertisch', () => {
       expect(screen.getByText('Alle einig!')).toBeInTheDocument();
     });
 
-    it('fordert nur zum Diskutieren auf, wenn es Ausreißer gibt', () => {
-      const { rerender } = renderTable(revealed({ youId: 'bob' }));
-      expect(screen.getByText('Diskutiert die Ausreißer!')).toBeInTheDocument();
+    describe('Scrum-Mentor', () => {
+      const mentor = () => screen.getByRole('complementary', { name: 'Scrum-Mentor' });
 
-      rerender(
-        <PokerTable
-          view={revealed({
-            youId: 'bob',
-            result: buildResult({ average: 5, suggestedCard: '5', consensus: true }),
-          })}
-          online
-        />,
-      );
+      it('lässt bei Uneinigkeit zuerst begründen, wer am niedrigsten geschätzt hat', () => {
+        renderTable(revealed());
 
-      expect(screen.queryByText('Diskutiert die Ausreißer!')).not.toBeInTheDocument();
+        const steps = within(mentor()).getAllByRole('listitem');
+        expect(steps[0]).toHaveTextContent(
+          'Alice und Carol haben am niedrigsten geschätzt (5) und erklären, was die Story klein macht.',
+        );
+      });
+
+      it('lässt danach begründen, wer am höchsten geschätzt hat', () => {
+        renderTable(revealed());
+
+        const steps = within(mentor()).getAllByRole('listitem');
+        expect(steps[1]).toHaveTextContent(
+          'Bob hat am höchsten geschätzt (8) und erklärt, welcher Aufwand oder welches Risiko dahintersteckt.',
+        );
+      });
+
+      it('führt das Team danach zu einer gemeinsamen Schätzung', () => {
+        renderTable(revealed());
+
+        const steps = within(mentor()).getAllByRole('listitem');
+        expect(steps.at(-1)).toHaveTextContent(/Dann neu schätzen/);
+      });
+
+      it('sagt, wer gerade an der Reihe ist', () => {
+        renderTable(revealed({ youId: 'bob' }));
+
+        const [lowest, highest] = within(mentor()).getAllByRole('listitem');
+        expect(within(highest!).getByText('Du bist dran')).toBeInTheDocument();
+        expect(within(lowest!).queryByText('Du bist dran')).not.toBeInTheDocument();
+      });
+
+      it('schickt das Team bei Einigkeit zur nächsten Story', () => {
+        renderTable(revealed({ result: buildResult({ consensus: true }) }));
+
+        expect(mentor()).toHaveTextContent(/nehmt euch die nächste Story vor/);
+      });
+
+      it('bittet bei Fragezeichen oder Kaffeetasse erst um Klärung', () => {
+        renderTable(
+          revealed({
+            players: [
+              buildPlayer({ id: 'me', name: 'Alice', status: 'voted', card: '5' }),
+              buildPlayer({ id: 'bob', status: 'voted', card: '?' }),
+            ],
+            result: buildResult({ consensus: false, outliers: null }),
+          }),
+        );
+
+        expect(mentor()).toHaveTextContent(/Erst klären, dann schätzen/);
+      });
+
+      it('schweigt, wenn nur eine Karte auf dem Tisch liegt', () => {
+        renderTable(
+          revealed({
+            players: [
+              buildPlayer({ id: 'me', name: 'Alice', status: 'voted', card: '5' }),
+              buildPlayer({ id: 'bob', isSpectator: true, status: 'ignored' }),
+            ],
+            result: buildResult({ consensus: false, outliers: null }),
+          }),
+        );
+
+        expect(
+          screen.queryByRole('complementary', { name: 'Scrum-Mentor' }),
+        ).not.toBeInTheDocument();
+      });
+
+      it('meldet sich erst nach dem Aufdecken', () => {
+        renderTable(buildView({ phase: 'voting', round: 1 }));
+
+        expect(
+          screen.queryByRole('complementary', { name: 'Scrum-Mentor' }),
+        ).not.toBeInTheDocument();
+      });
     });
 
     it('bleibt still, wenn jemand anderes die nächste Runde schneller gestartet hat', async () => {

@@ -9,6 +9,7 @@ import { CardHand } from './CardHand.tsx';
 import { CenterStage } from './CenterStage.tsx';
 import { JoinCodeBadge } from './JoinCodeBadge.tsx';
 import styles from './PokerTable.module.css';
+import { ScrumMentor } from './ScrumMentor.tsx';
 import { Seat, type SeatAction } from './Seat.tsx';
 import { SeatCard } from './SeatCard.tsx';
 import { seatLayout } from './seat-layout.ts';
@@ -73,6 +74,15 @@ export function PokerTable({ view, online }: PokerTableProps) {
           </div>
         </div>
       </div>
+
+      {view.phase === 'revealed' && view.result && (
+        <ScrumMentor
+          key={view.round}
+          result={view.result}
+          players={view.players}
+          youId={view.youId}
+        />
+      )}
 
       <footer className={styles.handArea}>
         {me && <PlayerControls me={me} view={view} commands={commands} />}

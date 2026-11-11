@@ -50,7 +50,6 @@ export function CenterStage({ view, commands }: CenterStageProps) {
         {view.phase === 'revealed' && view.result && (
           <motion.div key={`revealed-${view.round}`} className={styles.progress} {...appear}>
             <RoundResultPanel result={view.result} players={view.players} deck={view.deck} />
-            {!view.result.consensus && <p className={styles.hint}>Diskutiert die Ausreißer!</p>}
             <Button variant="primary" disabled={!view.canStart} onClick={commands.startRound}>
               Nächste Runde
             </Button>

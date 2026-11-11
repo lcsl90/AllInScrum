@@ -71,3 +71,11 @@ export const SparklesIcon = (props: IconProps) => (
     <path d="M18 14c.3 1.6.9 2.2 2.5 2.5-1.6.3-2.2.9-2.5 2.5-.3-1.6-.9-2.2-2.5-2.5 1.6-.3 2.2-.9 2.5-2.5z" />
   </Svg>
 );
+
+/** Sprechblase – der Scrum-Mentor gibt dem Team einen Rat. */
+export const MentorIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.3-4.6A7.5 7.5 0 1 1 20 11.5z" />
+    <path d="M9 10h6M9 13.5h3.5" />
+  </Svg>
+);
