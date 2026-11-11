@@ -245,6 +245,16 @@ describe('Pokertisch', () => {
       expect(client.callsOf('reveal')).toHaveLength(1);
     });
 
+    it('bleibt still, wenn jemand anderes schneller aufgedeckt hat', async () => {
+      const { user, client } = renderTable(voting({ canReveal: true }));
+      client.respond('reveal', { ok: false, error: 'round-not-active' });
+
+      await user.click(screen.getByRole('button', { name: 'Aufdecken' }));
+
+      expect(client.callsOf('reveal')).toHaveLength(1);
+      expect(screen.queryByText(/läuft keine Schätzrunde/)).not.toBeInTheDocument();
+    });
+
     it('lässt erst aufdecken, wenn der Server es erlaubt', async () => {
       const { rerender, user, client } = renderTable(voting({ canReveal: false }));
       expect(screen.getByRole('button', { name: 'Aufdecken' })).toBeDisabled();
@@ -561,6 +571,16 @@ describe('Pokertisch', () => {
       );
 
       expect(screen.queryByText('Diskutiert die Ausreißer!')).not.toBeInTheDocument();
+    });
+
+    it('bleibt still, wenn jemand anderes die nächste Runde schneller gestartet hat', async () => {
+      const { user, client } = renderTable(revealed({ canStart: true }));
+      client.respond('startRound', { ok: false, error: 'round-already-active' });
+
+      await user.click(screen.getByRole('button', { name: 'Nächste Runde' }));
+
+      expect(client.callsOf('startRound')).toHaveLength(1);
+      expect(screen.queryByText(/läuft bereits/)).not.toBeInTheDocument();
     });
 
     it('lässt jeden die nächste Runde starten', async () => {

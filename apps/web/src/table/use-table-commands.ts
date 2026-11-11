@@ -1,4 +1,4 @@
-import type { Ack, Card } from '@allinscrum/protocol';
+import type { Ack, Card, ErrorCode } from '@allinscrum/protocol';
 import { useMemo } from 'react';
 import { useSessionClient } from '../realtime/SessionClientContext.tsx';
 import { errorMessage } from '../ui/error-messages.ts';
@@ -12,14 +12,20 @@ export function useTableCommands() {
   const toast = useToast();
 
   return useMemo(() => {
-    const run = (send: () => Promise<Ack>) => {
+    /**
+     * @param alreadyDone Fehler, der nur bedeutet: Jemand anderes war schneller, das Ziel ist
+     *   erreicht. Da alle am Tisch starten und aufdecken dürfen, ist das kein Grund zur Meldung.
+     */
+    const run = (send: () => Promise<Ack>, alreadyDone?: ErrorCode) => {
       void send().then((response) => {
-        if (!response.ok) toast.show(errorMessage(response.error));
+        if (!response.ok && response.error !== alreadyDone) {
+          toast.show(errorMessage(response.error));
+        }
       });
     };
     return {
-      startRound: () => run(() => client.startRound()),
-      reveal: () => run(() => client.reveal()),
+      startRound: () => run(() => client.startRound(), 'round-already-active'),
+      reveal: () => run(() => client.reveal(), 'round-not-active'),
       vote: (card: Card | null) => run(() => client.vote(card)),
       setUncertain: (uncertain: boolean) => run(() => client.setUncertain(uncertain)),
       setSpectating: (spectating: boolean) => run(() => client.setSpectating(spectating)),
