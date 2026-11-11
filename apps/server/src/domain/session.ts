@@ -284,8 +284,8 @@ export class Session {
   private startRoundViolation(by: string): ErrorCode | null {
     if (!this.players.has(by)) return 'not-a-member';
     if (this.phase === 'voting') return 'round-already-active';
-    const estimators = this.players.size - this.spectators.size;
     if (this.players.size < MIN_PLAYERS_PER_ROUND) return 'not-enough-players';
+    const estimators = this.players.size - this.spectators.size;
     if (estimators < MIN_ESTIMATORS_PER_ROUND) return 'not-enough-players';
     return null;
   }
