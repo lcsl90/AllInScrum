@@ -2,7 +2,12 @@ import type { Card, ProfileInput } from '@allinscrum/protocol';
 import type { Clock } from '../domain/clock.ts';
 import { DomainError } from '../domain/domain-error.ts';
 import { generateJoinCode, normalizeJoinCode } from '../domain/join-code.ts';
-import { type Membership, type PresencePolicy, Session } from '../domain/session.ts';
+import {
+  type Membership,
+  type PresencePolicy,
+  Session,
+  type SessionSnapshot,
+} from '../domain/session.ts';
 
 export interface RegistrySettings {
   readonly deck: readonly Card[];
@@ -65,6 +70,22 @@ export class SessionRegistry {
   find(joinCode: string): Session | undefined {
     const normalized = normalizeJoinCode(joinCode);
     return normalized === null ? undefined : this.sessions.get(normalized);
+  }
+
+  /** Alle Tische ohne Spieler – das, was einen Neustart überstehen soll. */
+  snapshot(): SessionSnapshot[] {
+    return [...this.sessions.values()].map((session) => session.toSnapshot());
+  }
+
+  /** Stellt gesicherte Tische wieder her; verlassene räumt der nächste Durchlauf von sweep() ab. */
+  restore(snapshots: readonly SessionSnapshot[]): void {
+    for (const snapshot of snapshots) {
+      const session = Session.restore(snapshot, {
+        maxPlayers: this.settings.maxPlayersPerSession,
+        clock: this.settings.clock,
+      });
+      this.sessions.set(session.joinCode, session);
+    }
   }
 
   /** Löscht verlassene Sessions und setzt in den übrigen die Präsenzregeln durch. Läuft periodisch. */
