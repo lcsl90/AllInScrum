@@ -82,6 +82,17 @@ describe('Pokertisch', () => {
       expect(resumeTokenFor('K7Q-X2M')).toBeUndefined();
     });
 
+    it.each([
+      [{ phase: 'lobby', round: 0 } as const, 'Noch keine Runde gespielt'],
+      [{ phase: 'voting', round: 4 } as const, 'Runde 4'],
+      [{ phase: 'lobby', round: 1 } as const, '1 Runde gespielt'],
+      [{ phase: 'lobby', round: 4 } as const, '4 Runden gespielt'],
+    ])('nennt den Stand der Runden: %j → %s', (state, label) => {
+      renderTable(buildView(state));
+
+      expect(screen.getByText(label)).toBeInTheDocument();
+    });
+
     it('zeigt an, wenn die Verbindung unterbrochen ist', () => {
       renderApp(<PokerTable view={buildView()} online={false} />);
 

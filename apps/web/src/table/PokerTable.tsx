@@ -109,9 +109,7 @@ function TableHeader({ view, online }: PokerTableProps) {
     <header className={styles.header}>
       <div className={styles.titleGroup}>
         <h1 className={styles.title}>{view.name}</h1>
-        <span className={styles.roundLabel}>
-          {view.round === 0 ? 'Noch keine Runde gespielt' : `Runde ${view.round}`}
-        </span>
+        <span className={styles.roundLabel}>{roundLabel(view)}</span>
       </div>
       <div className={styles.headerActions}>
         <AnimatePresence>
@@ -140,6 +138,13 @@ function TableHeader({ view, online }: PokerTableProps) {
       </div>
     </header>
   );
+}
+
+/** Zwischen den Runden zählt, wie viele schon gespielt sind – während einer Runde ihre Nummer. */
+function roundLabel({ phase, round }: SessionView): string {
+  if (round === 0) return 'Noch keine Runde gespielt';
+  if (phase !== 'lobby') return `Runde ${round}`;
+  return round === 1 ? '1 Runde gespielt' : `${round} Runden gespielt`;
 }
 
 interface PlayerControlsProps {

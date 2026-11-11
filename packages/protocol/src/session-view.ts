@@ -95,6 +95,7 @@ export interface SessionView {
   readonly name: string;
   readonly deck: readonly Card[];
   readonly phase: RoundPhase;
+  /** Nummer der laufenden bzw. zuletzt gespielten Runde – 0, solange noch keine gespielt wurde. */
   readonly round: number;
   readonly youId: string;
   /** In Sitzreihenfolge (Beitrittsreihenfolge). */

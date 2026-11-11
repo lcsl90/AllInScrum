@@ -241,7 +241,7 @@ export class Session {
       name: this.name,
       deck: this.deck,
       phase: this.phase,
-      round: this.round?.number ?? 0,
+      round: this.roundsPlayed,
       youId: viewerId,
       players: [...this.players.values()].map((player) => this.toPlayerView(player, viewerId)),
       canStart: this.startRoundViolation(viewerId) === null,

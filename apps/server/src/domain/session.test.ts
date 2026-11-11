@@ -845,6 +845,16 @@ describe('Session', () => {
       });
     });
 
+    it('zählt in der Lobby weiter, wie viele Runden schon gespielt wurden', () => {
+      const { session, alice, bob } = playedRound(['5', '8']);
+
+      session.leave(alice.playerId);
+      session.leave(bob.playerId);
+      const [carol] = seat(session, 'Carol');
+
+      expect(session.viewFor(carol.playerId).round).toBe(1);
+    });
+
     it('verwirft eine nie aufgedeckte Runde, wenn der Letzte geht', () => {
       const session = createSession();
       const [alice, bob] = seat(session, 'Alice', 'Bob');
