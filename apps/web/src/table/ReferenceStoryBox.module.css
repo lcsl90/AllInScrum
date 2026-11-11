@@ -1,0 +1,139 @@
+/* Eine kleine Plakette unter der Hand: Referenz, Punkte als Mini-Karte, Titel. */
+.box {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(100%, 520px);
+  padding: 6px 8px 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.06), transparent), rgb(4 24 16 / 0.7);
+  border: 1px solid rgb(232 184 79 / 0.4);
+  box-shadow:
+    0 8px 22px rgb(0 0 0 / 0.4),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+/* Noch keine Referenz: zurückhaltend, nur der Admin sieht die Einladung. */
+.box[data-mode='empty'] {
+  padding: 2px;
+  border-style: dashed;
+  border-color: rgb(232 184 79 / 0.35);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Beim Bearbeiten braucht das Formular mehr Fläche als die Pille. */
+.box[data-mode='editing'] {
+  max-width: min(100%, 680px);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.card {
+  display: grid;
+  place-items: center;
+  flex: none;
+  min-width: 24px;
+  height: 32px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--color-card);
+  color: var(--color-card-ink);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 0.45);
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.edit,
+.add {
+  all: unset;
+  cursor: pointer;
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  transition:
+    color 0.2s,
+    background 0.2s;
+}
+
+.edit {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
+
+.add {
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.edit:hover,
+.add:hover {
+  color: var(--color-accent-strong);
+  background: rgb(232 184 79 / 0.1);
+}
+
+.edit:focus-visible,
+.add:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 10px;
+}
+
+.field {
+  display: grid;
+  gap: 3px;
+}
+
+.input,
+.select {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--radius-small);
+  border: 1px solid var(--color-border);
+  background: rgb(0 0 0 / 0.35);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.input {
+  width: min(64vw, 280px);
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}

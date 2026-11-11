@@ -10,6 +10,7 @@ import { CenterStage } from './CenterStage.tsx';
 import { JoinCodeBadge } from './JoinCodeBadge.tsx';
 import styles from './PokerTable.module.css';
 import { RoundHistory } from './RoundHistory.tsx';
+import { ReferenceStoryBox } from './ReferenceStoryBox.tsx';
 import { ScrumMentor } from './ScrumMentor.tsx';
 import { Seat, type SeatAction } from './Seat.tsx';
 import { SeatCard } from './SeatCard.tsx';
@@ -155,10 +156,19 @@ function PlayerControls({ me, view, commands }: PlayerControlsProps) {
   const spectatorToggle = (
     <SpectatorToggle spectating={me.isSpectator} onChange={commands.setSpectating} />
   );
+  const reference = (
+    <ReferenceStoryBox
+      story={view.referenceStory}
+      deck={view.deck}
+      editable={me.isAdmin}
+      onSave={commands.setReferenceStory}
+    />
+  );
   if (me.isSpectator) {
     return (
       <>
         <p className={styles.sittingOut}>Du schaust nur zu und schätzt nicht mit.</p>
+        {reference}
         <div className={styles.toggles}>{spectatorToggle}</div>
       </>
     );
@@ -178,6 +188,7 @@ function PlayerControls({ me, view, commands }: PlayerControlsProps) {
           onSelect={commands.vote}
         />
       )}
+      {reference}
       <div className={styles.toggles}>
         {playing && (
           <UncertainToggle

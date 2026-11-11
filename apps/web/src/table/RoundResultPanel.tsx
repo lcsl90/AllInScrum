@@ -166,7 +166,7 @@ function PileWithOwners({ players, swapped = false }: PileWithOwnersProps) {
             className={styles.owner}
             title={player.name}
           >
-            <Avatar name={player.name} avatar={player.avatar} size={40} />
+            <Avatar name={player.name} avatar={player.avatar} size={32} />
             <span className={styles.ownerName}>{player.name}</span>
           </motion.span>
         ))}

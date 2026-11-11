@@ -81,7 +81,8 @@
 
 .table {
   position: relative;
-  width: min(100%, 1000px, calc((100dvh - 330px) * 2));
+  /* Unter dem Tisch brauchen Hand, Referenzstory und Schalter ihren Platz – auch auf Laptops. */
+  width: min(100%, 1000px, calc((100dvh - 480px) * 2));
   min-width: 280px;
   aspect-ratio: 2 / 1;
 }
@@ -180,6 +181,8 @@
   align-content: end;
   gap: 10px;
   min-height: 140px;
+  /* Der Freiraum über der Hand (für die angehobene Karte) darf in die Polsterung unter dem Tisch ragen. */
+  margin-top: -36px;
 }
 
 .toggles {

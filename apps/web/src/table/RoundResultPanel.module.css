@@ -1,15 +1,15 @@
 .result {
   display: grid;
   justify-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 /* Die Ergebnistafel: ein dunkles Schild mit goldenem Rand, damit das Ergebnis vom Filz abhebt. */
 .summary {
   display: grid;
   justify-items: center;
-  gap: 6px;
-  padding: 10px 20px 12px;
+  gap: 4px;
+  padding: 6px 18px 8px;
   border-radius: 18px;
   background:
     radial-gradient(ellipse at 50% 0%, rgb(255 210 119 / 0.16), transparent 70%), rgb(4 24 16 / 0.5);
@@ -48,7 +48,6 @@
 
 .average {
   margin: 0;
-  max-width: 32ch;
   font-family: var(--font-display);
   font-size: clamp(1rem, 1.9vw, 1.2rem);
   line-height: 1.5;
@@ -94,7 +93,7 @@
   justify-content: center;
   align-items: flex-start;
   gap: 14px clamp(22px, 3vw, 36px);
-  padding: 18px 12px 0;
+  padding: 12px 12px 0;
 }
 
 /* Ein Wert: gestapelte Karten und daneben einzeln, wer getauscht hat. */
@@ -107,7 +106,7 @@
 .column {
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 
 /* Die ursprüngliche Karte schaut links unter der getauschten hervor – dafür braucht es Platz. */

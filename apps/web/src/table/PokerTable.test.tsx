@@ -672,6 +672,94 @@ describe('Pokertisch', () => {
     });
   });
 
+  describe('Referenzstory', () => {
+    const reference = () => screen.getByRole('region', { name: 'Referenzstory' });
+    const login = { title: 'Login-Formular', card: '5' };
+
+    it('zeigt allen die Referenzstory mit ihren Punkten unter der Hand', () => {
+      renderTable(asGuest({ phase: 'voting', round: 1, referenceStory: login }));
+
+      expect(reference()).toHaveTextContent('Login-Formular');
+      expect(within(reference()).getByText('5')).toBeInTheDocument();
+    });
+
+    it('bietet anderen Spielern keine Bearbeitung an', () => {
+      renderTable(asGuest({ referenceStory: login }));
+
+      expect(within(reference()).queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    it('bleibt ohne Referenzstory für andere Spieler unsichtbar', () => {
+      renderTable(asGuest({ referenceStory: null }));
+
+      expect(screen.queryByRole('region', { name: 'Referenzstory' })).not.toBeInTheDocument();
+    });
+
+    it('lässt den Admin eine Referenzstory festlegen', async () => {
+      const { user, client } = renderTable(buildView({ referenceStory: null }));
+
+      await user.click(screen.getByRole('button', { name: 'Referenzstory festlegen' }));
+      await user.type(screen.getByLabelText('Story'), 'Login-Formular');
+      await user.selectOptions(screen.getByLabelText('Punkte'), '8');
+      await user.click(screen.getByRole('button', { name: 'Speichern' }));
+
+      expect(client.callsOf('setReferenceStory')).toEqual([
+        [{ title: 'Login-Formular', card: '8' }],
+      ]);
+    });
+
+    it('bietet als Punkte nur echte Schätzwerte an – kein ? und keine Kaffeetasse', async () => {
+      const { user } = renderTable(buildView({ referenceStory: null }));
+
+      await user.click(screen.getByRole('button', { name: 'Referenzstory festlegen' }));
+
+      const options = within(screen.getByLabelText('Punkte')).getAllByRole('option');
+      expect(options.map((option) => option.textContent)).toEqual([
+        '0',
+        '1',
+        '2',
+        '3',
+        '5',
+        '8',
+        '13',
+        '21',
+        '34',
+      ]);
+    });
+
+    it('lässt den Admin die Referenzstory ändern', async () => {
+      const { user, client } = renderTable(buildView({ referenceStory: login }));
+
+      await user.click(screen.getByRole('button', { name: 'Referenzstory bearbeiten' }));
+      expect(screen.getByLabelText('Story')).toHaveValue('Login-Formular');
+      await user.selectOptions(screen.getByLabelText('Punkte'), '3');
+      await user.click(screen.getByRole('button', { name: 'Speichern' }));
+
+      expect(client.callsOf('setReferenceStory')).toEqual([
+        [{ title: 'Login-Formular', card: '3' }],
+      ]);
+    });
+
+    it('lässt den Admin die Referenzstory entfernen', async () => {
+      const { user, client } = renderTable(buildView({ referenceStory: login }));
+
+      await user.click(screen.getByRole('button', { name: 'Referenzstory bearbeiten' }));
+      await user.click(screen.getByRole('button', { name: 'Entfernen' }));
+
+      expect(client.callsOf('setReferenceStory')).toEqual([[null]]);
+    });
+
+    it('verwirft die Bearbeitung beim Abbrechen', async () => {
+      const { user, client } = renderTable(buildView({ referenceStory: login }));
+
+      await user.click(screen.getByRole('button', { name: 'Referenzstory bearbeiten' }));
+      await user.click(screen.getByRole('button', { name: 'Abbrechen' }));
+
+      expect(client.callsOf('setReferenceStory')).toEqual([]);
+      expect(reference()).toHaveTextContent('Login-Formular');
+    });
+  });
+
   describe('Verlauf', () => {
     const today = (hours: number, minutes: number) =>
       new Date(2026, 10, 11, hours, minutes).getTime();
