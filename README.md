@@ -19,10 +19,15 @@ als einzelner Docker-Container.
   nächstliegende Karte des Decks als Vorschlag. Die Karten liegen nach Wert gestapelt; wer nach
   dem Aufdecken umschwenkt, steht mit seiner neuen Karte einzeln da – die alte schaut darunter
   hervor. Bei Einigkeit gibt es Konfetti.
-- **Admin-Rolle:** Der Ersteller startet Runden, deckt auf, lässt Abwesende eine Runde aussetzen
-  oder nimmt sie ganz vom Tisch und kann die Rolle weitergeben. Ist der Admin länger getrennt,
-  wandert sie automatisch weiter. Wer entfernt wurde, kann mit dem Join-Code als neuer Spieler
-  wieder Platz nehmen.
+- **Scrum-Mentor:** Nach dem Aufdecken sagt er, was jetzt zu tun ist. Ist sich das Team uneinig,
+  begründen zuerst die niedrigste, dann die höchste Schätzung ihre Karte; danach wird neu
+  geschätzt, bis alle hinter einer Schätzung stehen. Wer gerade reden soll, sieht „Du bist dran".
+- **Niemand hält auf:** Jeder am Tisch – auch wer nur zuschaut – kann eine Runde starten und
+  aufdecken. Wer die Verbindung verliert, bevor er geschätzt hat, wird beim Aufdecken
+  übersprungen. Zu zweit genügt es, wenn einer mitschätzt.
+- **Admin-Rolle:** Der Ersteller lässt Abwesende eine Runde aussetzen oder nimmt sie ganz vom
+  Tisch und kann die Rolle weitergeben. Ist der Admin länger getrennt, wandert sie automatisch
+  weiter. Wer entfernt wurde, kann mit dem Join-Code als neuer Spieler wieder Platz nehmen.
 - **Robust:** Nach einem Reload oder Verbindungsabbruch sitzt man wieder auf seinem Platz – mit
   seiner Karte. Mehrere Tabs desselben Spielers sind kein Problem.
 - **Flüchtig:** Alles lebt im Arbeitsspeicher. Sessions ohne Aktivität werden nach 60 Minuten
