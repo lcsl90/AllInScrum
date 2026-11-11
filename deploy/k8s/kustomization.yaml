@@ -1,0 +1,29 @@
+# AllInScrum auf Kubernetes: kubectl apply -k deploy/k8s
+#
+# Anpassen vor dem ersten Deploy:
+#   - images[].newName/newTag: eigenes Registry-Image (Standard: GHCR-Image aus der CI)
+#   - ingress.yaml: Hostname, IngressClass und TLS-Secret
+#   - configmap.yaml: Laufzeitwerte (alle optional)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: allinscrum
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: allinscrum
+      app.kubernetes.io/part-of: allinscrum
+    includeSelectors: true
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - networkpolicy.yaml
+
+images:
+  - name: allinscrum
+    newName: ghcr.io/lcsl90/allinscrum
+    newTag: latest

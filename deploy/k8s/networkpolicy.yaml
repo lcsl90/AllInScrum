@@ -1,0 +1,16 @@
+# Der Server braucht keine ausgehenden Verbindungen und nimmt nur auf seinem HTTP-Port an.
+# Greift nur, wenn das CNI NetworkPolicies durchsetzt (z. B. Calico, Cilium).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allinscrum
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: server
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - ports:
+        - port: http
+          protocol: TCP
+  egress: []
