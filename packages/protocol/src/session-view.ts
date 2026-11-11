@@ -29,6 +29,21 @@ export interface PlayerView {
   readonly replacedCard: Card | null;
 }
 
+/** Eine Karte und alle, die sie gelegt haben. */
+export interface Estimate {
+  readonly card: Card;
+  readonly playerIds: readonly string[];
+}
+
+/**
+ * Die Spannweite einer uneinigen Runde: Wer am niedrigsten und wer am höchsten geschätzt hat,
+ * begründet seine Karte – so lernt das Team, was die anderen sehen.
+ */
+export interface Outliers {
+  readonly lowest: Estimate;
+  readonly highest: Estimate;
+}
+
 export interface RoundResult {
   /** Echter Mittelwert der Zahlenkarten, z. B. 6.5 – null, wenn keine Zahlenkarte gelegt wurde. */
   readonly average: number | null;
@@ -39,6 +54,8 @@ export interface RoundResult {
   readonly suggestedCard: Card | null;
   /** true, wenn alle gewerteten Spieler dieselbe Karte gelegt haben. */
   readonly consensus: boolean;
+  /** Niedrigste und höchste Zahlenkarte – null, solange es keine zwei verschiedenen Zahlen gibt. */
+  readonly outliers: Outliers | null;
 }
 
 /** Personalisierte Sicht eines Spielers auf seine Session. */

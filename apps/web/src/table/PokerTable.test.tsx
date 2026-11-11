@@ -2,7 +2,7 @@ import { COFFEE_CARD, type SessionView } from '@allinscrum/protocol';
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { rememberMembership, resumeTokenFor } from '../realtime/membership-store.ts';
-import { buildPlayer, buildView } from '../test/builders.ts';
+import { buildPlayer, buildResult, buildView } from '../test/builders.ts';
 import { withLegacyClipboardOnly } from '../test/legacy-clipboard.ts';
 import { renderApp } from '../test/render-app.tsx';
 import { PokerTable } from './PokerTable.tsx';
@@ -409,7 +409,7 @@ describe('Pokertisch', () => {
           buildPlayer({ id: 'bob', status: 'voted', card: '8', uncertain: true }),
           buildPlayer({ id: 'carol', status: 'voted', card: '5' }),
         ],
-        result: { average: 6, suggestedCard: '5', consensus: false },
+        result: buildResult({ average: 6, suggestedCard: '5', consensus: false }),
         ...overrides,
       });
 
@@ -469,7 +469,7 @@ describe('Pokertisch', () => {
       [6.5, '6,5'],
       [13 / 3, '4,3'],
     ])('schreibt den Durchschnitt %s mit einer Nachkommastelle: %s', (average, written) => {
-      renderTable(revealed({ result: { average, suggestedCard: '5', consensus: false } }));
+      renderTable(revealed({ result: buildResult({ average }) }));
 
       expect(screen.getByText(/im Schnitt/)).toHaveTextContent(
         `Das Team hat im Schnitt ${written} Storypoints gegeben.`,
@@ -477,7 +477,9 @@ describe('Pokertisch', () => {
     });
 
     it('spricht bei einem Punkt in der Einzahl', () => {
-      renderTable(revealed({ result: { average: 1, suggestedCard: '1', consensus: false } }));
+      renderTable(
+        revealed({ result: buildResult({ average: 1, suggestedCard: '1', consensus: false }) }),
+      );
 
       expect(screen.getByText(/im Schnitt/)).toHaveTextContent(
         'Das Team hat im Schnitt 1 Storypoint gegeben.',
@@ -485,7 +487,9 @@ describe('Pokertisch', () => {
     });
 
     it('erklärt, wenn es ohne Zahlenkarten keinen Durchschnitt gibt', () => {
-      renderTable(revealed({ result: { average: null, suggestedCard: null, consensus: false } }));
+      renderTable(
+        revealed({ result: buildResult({ average: null, suggestedCard: null, consensus: false }) }),
+      );
 
       expect(
         screen.getByText('Ohne Zahlenkarten gibt es keinen Durchschnitt.'),
@@ -499,7 +503,9 @@ describe('Pokertisch', () => {
     });
 
     it('verzichtet auf den Vorschlag, wenn der Durchschnitt genau eine Karte ist', () => {
-      renderTable(revealed({ result: { average: 5, suggestedCard: '5', consensus: false } }));
+      renderTable(
+        revealed({ result: buildResult({ average: 5, suggestedCard: '5', consensus: false }) }),
+      );
 
       expect(screen.queryByText(/Nächstliegende Karte/)).not.toBeInTheDocument();
     });
@@ -551,7 +557,9 @@ describe('Pokertisch', () => {
     });
 
     it('feiert, wenn sich alle einig sind', () => {
-      renderTable(revealed({ result: { average: 5, suggestedCard: '5', consensus: true } }));
+      renderTable(
+        revealed({ result: buildResult({ average: 5, suggestedCard: '5', consensus: true }) }),
+      );
 
       expect(screen.getByText('Alle einig!')).toBeInTheDocument();
     });
@@ -564,7 +572,7 @@ describe('Pokertisch', () => {
         <PokerTable
           view={revealed({
             youId: 'bob',
-            result: { average: 5, suggestedCard: '5', consensus: true },
+            result: buildResult({ average: 5, suggestedCard: '5', consensus: true }),
           })}
           online
         />,

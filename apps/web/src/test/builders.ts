@@ -1,4 +1,9 @@
-import { COFFEE_CARD, type PlayerView, type SessionView } from '@allinscrum/protocol';
+import {
+  COFFEE_CARD,
+  type PlayerView,
+  type RoundResult,
+  type SessionView,
+} from '@allinscrum/protocol';
 
 export const DECK = ['0', '1', '2', '3', '5', '8', '13', '21', '34', '?', COFFEE_CARD];
 
@@ -33,4 +38,9 @@ export function buildView(overrides: Partial<SessionView> = {}): SessionView {
     result: null,
     ...overrides,
   };
+}
+
+/** Eine uneinige Runde ohne benannte Ausreißer – per Overrides beliebig anpassbar. */
+export function buildResult(overrides: Partial<RoundResult> = {}): RoundResult {
+  return { average: 5, suggestedCard: '5', consensus: false, outliers: null, ...overrides };
 }

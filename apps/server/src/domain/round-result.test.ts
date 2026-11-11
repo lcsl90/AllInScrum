@@ -64,4 +64,37 @@ describe('summarizeRound', () => {
   ])('erkennt Konsens bei $cards → $consensus', ({ cards, consensus }) => {
     expect(summarizeRound(votesOf(cards), DEFAULT_DECK).consensus).toBe(consensus);
   });
+
+  describe('Ausreißer', () => {
+    it('benennt die niedrigste und die höchste Schätzung samt allen, die sie gelegt haben', () => {
+      const result = summarizeRound(votesOf(['3', '5', '13', '3']), DEFAULT_DECK);
+
+      expect(result.outliers).toEqual({
+        lowest: { card: '3', playerIds: ['p1', 'p4'] },
+        highest: { card: '13', playerIds: ['p3'] },
+      });
+    });
+
+    it('vergleicht Zahlen nach ihrem Wert, nicht alphabetisch', () => {
+      const result = summarizeRound(votesOf(['13', '2']), DEFAULT_DECK);
+
+      expect(result.outliers).toMatchObject({ lowest: { card: '2' }, highest: { card: '13' } });
+    });
+
+    it('lässt Sonderkarten außen vor', () => {
+      const result = summarizeRound(votesOf(['?', '8', COFFEE_CARD, '3']), DEFAULT_DECK);
+
+      expect(result.outliers).toEqual({
+        lowest: { card: '3', playerIds: ['p4'] },
+        highest: { card: '8', playerIds: ['p2'] },
+      });
+    });
+
+    it.each([[['5', '5']], [['5', '?']], [['5']], [['?', COFFEE_CARD]]])(
+      'gibt es nicht ohne zwei verschiedene Zahlenkarten: %j',
+      (cards) => {
+        expect(summarizeRound(votesOf(cards), DEFAULT_DECK).outliers).toBeNull();
+      },
+    );
+  });
 });

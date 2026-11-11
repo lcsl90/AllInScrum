@@ -1,4 +1,4 @@
-import type { Card, RoundResult } from '@allinscrum/protocol';
+import type { Card, Estimate, Outliers, RoundResult } from '@allinscrum/protocol';
 
 /** Wertet die aufgedeckten Karten einer Runde aus – je Spieler-ID die gelegte Karte. */
 export function summarizeRound(
@@ -11,7 +11,32 @@ export function summarizeRound(
     average: mean,
     suggestedCard: mean === null ? null : nearestCard(mean, deck),
     consensus: cards.length >= 2 && new Set(cards).size === 1,
+    outliers: outliersOf(votes),
   };
+}
+
+/** Die äußeren Zahlenkarten einer Runde – Sonderkarten wie "?" haben keinen Platz auf der Skala. */
+function outliersOf(votes: ReadonlyMap<string, Card>): Outliers | null {
+  const onScale = estimatesByCard(votes)
+    .flatMap((estimate) => {
+      const value = numericValue(estimate.card);
+      return value === null ? [] : [{ estimate, value }];
+    })
+    .sort((a, b) => a.value - b.value);
+  const lowest = onScale.at(0);
+  const highest = onScale.at(-1);
+  if (!lowest || !highest || lowest === highest) return null;
+  return { lowest: lowest.estimate, highest: highest.estimate };
+}
+
+function estimatesByCard(votes: ReadonlyMap<string, Card>): Estimate[] {
+  const playersByCard = new Map<Card, string[]>();
+  votes.forEach((card, playerId) => {
+    const playerIds = playersByCard.get(card) ?? [];
+    playerIds.push(playerId);
+    playersByCard.set(card, playerIds);
+  });
+  return [...playersByCard].map(([card, playerIds]) => ({ card, playerIds }));
 }
 
 /**
