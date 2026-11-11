@@ -4,44 +4,84 @@
   gap: 12px;
 }
 
+/* Die Ergebnistafel: ein dunkles Schild mit goldenem Rand, damit das Ergebnis vom Filz abhebt. */
 .summary {
   display: grid;
   justify-items: center;
-  gap: 4px;
+  gap: 6px;
+  padding: 10px 20px 12px;
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(255 210 119 / 0.16), transparent 70%), rgb(4 24 16 / 0.5);
+  border: 1px solid rgb(232 184 79 / 0.35);
+  box-shadow:
+    0 12px 30px rgb(0 0 0 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.07);
 }
 
+/* Der Vorschlag als Pille mit kleiner Spielkarte. */
 .suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
-  font-size: 0.85rem;
+  padding: 2px 4px 2px 10px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.28);
+  font-size: 0.8rem;
   color: rgb(255 255 255 / 0.78);
-  text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
 }
 
 .suggestion strong {
-  color: var(--color-accent-strong);
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 26px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--color-card);
+  color: var(--color-card-ink);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.4);
 }
 
 .average {
   margin: 0;
-  max-width: 30ch;
+  max-width: 32ch;
   font-family: var(--font-display);
-  font-size: clamp(1rem, 1.9vw, 1.25rem);
-  line-height: 1.35;
+  font-size: clamp(1rem, 1.9vw, 1.2rem);
+  line-height: 1.5;
   text-wrap: balance;
   color: var(--color-text);
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
 }
 
+/* Der Durchschnitt als Pokerchip: rot-weißer Rand, goldene Mitte. */
 .averageValue {
-  display: inline-block;
-  margin: 0 0.08em;
-  font-size: 1.9em;
+  display: inline-grid;
+  place-items: center;
+  width: 2.6em;
+  height: 2.6em;
+  margin: 0 0.2em;
+  border-radius: 50%;
+  vertical-align: middle;
+  font-size: 1.15em;
   line-height: 1;
-  vertical-align: -0.12em;
-  color: var(--color-accent-strong);
-  text-shadow:
-    0 0 24px rgb(232 184 79 / 0.55),
-    0 2px 0 rgb(0 0 0 / 0.35);
+  color: var(--color-accent-ink);
+  text-shadow: none;
+  background:
+    radial-gradient(
+      circle,
+      var(--color-accent-strong) 0 52%,
+      var(--color-accent) 53% 58%,
+      transparent 59%
+    ),
+    repeating-conic-gradient(var(--color-card) 0 20deg, var(--color-card-red) 20deg 40deg);
+  box-shadow:
+    0 4px 10px rgb(0 0 0 / 0.45),
+    0 0 22px rgb(232 184 79 / 0.35),
+    inset 0 0 0 2px rgb(0 0 0 / 0.25);
 }
 
 /*
@@ -139,12 +179,16 @@
     font-size: 0.9rem;
   }
 
+  .summary {
+    padding: 6px 12px 8px;
+  }
+
   .averageValue {
-    font-size: 1.6em;
+    font-size: 1em;
   }
 
   .suggestion {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
   }
 
   .stacks {
