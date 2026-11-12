@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "allinscrum.fullname" . }}
+  labels:
+    {{- include "allinscrum.labels" . | nindent 4 }}
+spec:
+  # Genau EIN Pod: Laufende Runden leben im Arbeitsspeicher dieses Prozesses. Mehr Replikate würden
+  # Tische auf verschiedene Pods verteilen – Spieler säßen dann an unterschiedlichen Tischen.
+  replicas: 1
+  # Kein RollingUpdate: Alte und neue Version würden kurz parallel laufen, Sessions aufteilen und
+  # beide in dieselbe Datei schreiben. Die Tische selbst überstehen das Deploy im Volume.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      {{- include "allinscrum.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "allinscrum.selectorLabels" . | nindent 8 }}
+      annotations:
+        # Der Server liest seine Konfiguration nur beim Start – geänderte Werte starten den Pod neu.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000 # Benutzer "node" aus dem Image
+        runAsGroup: 1000
+        fsGroup: 1000 # damit das Daten-Volume für den Benutzer "node" beschreibbar ist
+        seccompProfile:
+          type: RuntimeDefault
+      # Der Server beendet Socket.IO bei SIGTERM sauber, sichert die Tische und wartet nicht auf Clients.
+      terminationGracePeriodSeconds: 15
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "allinscrum.claimName" . }}
+      {{- end }}
+      containers:
+        - name: allinscrum
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- with .Values.image.pullPolicy }}
+          imagePullPolicy: {{ . }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 41400
+              protocol: TCP
+          env:
+            - name: PORT
+              value: '41400'
+            # Leer = keine Sicherung; überschreibt das DATA_DIR aus dem Image.
+            - name: DATA_DIR
+              value: {{ ternary "/data" "" .Values.persistence.enabled | quote }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "allinscrum.fullname" . }}
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          # Geschrieben wird nur ins Daten-Volume – sonst braucht der Container weder Schreibrechte
+          # noch Privilegien.
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

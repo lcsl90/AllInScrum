@@ -1,0 +1,74 @@
+# AllInScrum als Helm-Chart: helm upgrade --install allinscrum deploy/helm/allinscrum -n allinscrum --create-namespace
+#
+# Die Zahl der Replikate ist bewusst nicht einstellbar: Laufende Runden leben im Arbeitsspeicher
+# eines Prozesses – mehrere Pods würden Tische aufteilen.
+
+image:
+  repository: ghcr.io/lcsl90/allinscrum
+  # main → latest, Git-Tag v1.2.3 → 1.2.3. Für den Betrieb eine feste Version setzen.
+  tag: latest
+  # Leer = Kubernetes-Standard (Always bei "latest", sonst IfNotPresent).
+  pullPolicy: ''
+
+# Nötig, wenn das Image in einer privaten Registry liegt, z. B. [{ name: ghcr }].
+imagePullSecrets: []
+
+nameOverride: ''
+fullnameOverride: ''
+
+# Laufzeitwerte des Servers als Umgebungsvariablen (siehe README, Abschnitt Konfiguration).
+# Alle optional – hier stehen die Standardwerte. TRUST_PROXY folgt ohne Angabe ingress.enabled.
+config:
+  SESSION_RETENTION_DAYS: 28
+  ADMIN_HANDOVER_SECONDS: 30
+  OFFLINE_REMOVAL_MINUTES: 5
+  MAX_SESSIONS: 1000
+  MAX_PLAYERS_PER_SESSION: 16
+  # CARD_DECK: '0,1,2,3,5,8,13,21,34,?,coffee'
+
+# Hier überstehen die Tische Neustarts und Deploys (eine kleine JSON-Datei).
+persistence:
+  # false: Tische leben nur im Arbeitsspeicher und gehen mit dem Pod verloren.
+  enabled: true
+  size: 256Mi
+  # Leer = StorageClass-Standard des Clusters.
+  storageClass: ''
+  # Vorhandenen PersistentVolumeClaim nutzen, statt einen anzulegen.
+  existingClaim: ''
+
+service:
+  type: ClusterIP
+  port: 80
+
+# TLS endet am Ingress, der Pod selbst spricht HTTP.
+ingress:
+  enabled: false
+  className: nginx
+  host: allinscrum.example.com
+  annotations:
+    # cert-manager.io/cluster-issuer: letsencrypt
+    # Echtzeitverbindung (WebSocket) offen halten – Socket.IO pingt ohnehin alle 25 s.
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+  tls:
+    enabled: true
+    # Von cert-manager ausgestellt oder selbst angelegt (kubectl create secret tls …).
+    # Leer = "<Release-Name>-tls".
+    secretName: ''
+
+# Der Server braucht keine ausgehenden Verbindungen und nimmt nur auf seinem HTTP-Port an.
+# Greift nur, wenn das CNI NetworkPolicies durchsetzt (z. B. Calico, Cilium).
+networkPolicy:
+  enabled: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 96Mi
+  limits:
+    memory: 256Mi
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
