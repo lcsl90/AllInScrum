@@ -155,6 +155,7 @@ Die wichtigsten Werte (alle in [`values.yaml`](deploy/helm/allinscrum/values.yam
 | `ingress.enabled` / `ingress.host`         | `false` / Beispielname                 | Ingress (ingress-nginx); setzt zugleich `TRUST_PROXY=true`     |
 | `ingress.tls.secretName`                   | `<Release>-tls`                        | TLS-Secret, z. B. von cert-manager                             |
 | `persistence.enabled` / `persistence.size` | `true` / `256Mi`                       | Daten-Volume für die Tische; `existingClaim` nutzt ein eigenes |
+| `persistence.storageClass`                 | Cluster-Standard                       | StorageClass des Volumes; `-` = keine (vorhandenes PV)         |
 | `networkPolicy.enabled`                    | `true`                                 | Nur der HTTP-Port ist erreichbar, kein ausgehender Verkehr     |
 
 Ohne Ingress erreicht man den Dienst zum Ausprobieren über

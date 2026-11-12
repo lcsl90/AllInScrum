@@ -10,7 +10,8 @@ metadata:
 spec:
   accessModes: [ReadWriteOnce]
   {{- with .Values.persistence.storageClass }}
-  storageClassName: {{ . }}
+  {{- /* "-" erzwingt storageClassName: "" – kein dynamisches Provisioning, nur vorhandene PVs. */}}
+  storageClassName: {{ eq . "-" | ternary "" . | quote }}
   {{- end }}
   resources:
     requests:

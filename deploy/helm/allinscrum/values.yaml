@@ -36,7 +36,8 @@ persistence:
   # false: Tische leben nur im Arbeitsspeicher und gehen mit dem Pod verloren.
   enabled: true
   size: 256Mi
-  # Leer = StorageClass-Standard des Clusters.
+  # Name der StorageClass, z. B. longhorn. Leer = Standard-StorageClass des Clusters,
+  # "-" = keine StorageClass (bindet nur an ein passendes, vorhandenes PersistentVolume).
   storageClass: ''
   # Vorhandenen PersistentVolumeClaim nutzen, statt einen anzulegen.
   existingClaim: ''
