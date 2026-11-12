@@ -74,6 +74,24 @@ resources:
   limits:
     memory: 256Mi
 
+# Sicherheitskontext des Pods. Einzelne Felder lassen sich per --set überschreiben, mit null
+# entfernen (z. B. für OpenShift, das UID/GID selbst vergibt: runAsUser=null, runAsGroup=null, fsGroup=null).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000 # Benutzer "node" aus dem Image
+  runAsGroup: 1000
+  fsGroup: 1000 # damit das Daten-Volume für den Benutzer "node" beschreibbar ist
+  seccompProfile:
+    type: RuntimeDefault
+
+# Sicherheitskontext des Containers. Geschrieben wird nur ins Daten-Volume – sonst braucht der
+# Container weder Schreibrechte noch Privilegien.
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
 podAnnotations: {}
 nodeSelector: {}
 tolerations: []

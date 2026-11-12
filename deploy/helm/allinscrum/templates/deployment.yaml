@@ -34,13 +34,10 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.podSecurityContext }}
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000 # Benutzer "node" aus dem Image
-        runAsGroup: 1000
-        fsGroup: 1000 # damit das Daten-Volume für den Benutzer "node" beschreibbar ist
-        seccompProfile:
-          type: RuntimeDefault
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       # Der Server beendet Socket.IO bei SIGTERM sauber, sichert die Tische und wartet nicht auf Clients.
       terminationGracePeriodSeconds: 15
       {{- if .Values.persistence.enabled }}
@@ -89,13 +86,10 @@ spec:
             failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          # Geschrieben wird nur ins Daten-Volume – sonst braucht der Container weder Schreibrechte
-          # noch Privilegien.
+          {{- with .Values.securityContext }}
           securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop: [ALL]
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
