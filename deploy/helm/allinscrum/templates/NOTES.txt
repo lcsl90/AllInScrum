@@ -4,7 +4,7 @@ Erreichbar unter: http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Value
 {{- else }}
 Kein Ingress aktiviert – zum Ausprobieren:
 
-  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "allinscrum.fullname" . }} 41400:{{ .Values.service.port }}
+  kubectl -n {{ include "allinscrum.namespace" . }} port-forward svc/{{ include "allinscrum.fullname" . }} 41400:{{ .Values.service.port }}
 
 Danach: http://localhost:41400
 {{- end }}

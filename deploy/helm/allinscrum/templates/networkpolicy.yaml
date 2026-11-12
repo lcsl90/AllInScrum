@@ -3,6 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ include "allinscrum.fullname" . }}
+  namespace: {{ include "allinscrum.namespace" . }}
   labels:
     {{- include "allinscrum.labels" . | nindent 4 }}
 spec:

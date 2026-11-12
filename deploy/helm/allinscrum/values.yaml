@@ -13,6 +13,11 @@ image:
 # Nötig, wenn das Image in einer privaten Registry liegt, z. B. [{ name: ghcr }].
 imagePullSecrets: []
 
+# Namespace, in dem alle Ressourcen landen – er muss bereits existieren (oder per
+# "helm --namespace allinscrum --create-namespace" angelegt werden).
+# Leer = Namespace des Releases (helm --namespace).
+namespace: allinscrum
+
 nameOverride: ''
 fullnameOverride: ''
 

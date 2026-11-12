@@ -4,6 +4,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ include "allinscrum.claimName" . }}
+  namespace: {{ include "allinscrum.namespace" . }}
   labels:
     {{- include "allinscrum.labels" . | nindent 4 }}
 spec:

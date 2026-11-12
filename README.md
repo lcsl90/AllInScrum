@@ -150,6 +150,7 @@ Die wichtigsten Werte (alle in [`values.yaml`](deploy/helm/allinscrum/values.yam
 | Wert                                       | Standard                               | Bedeutung                                                      |
 | ------------------------------------------ | -------------------------------------- | -------------------------------------------------------------- |
 | `image.repository` / `image.tag`           | `ghcr.io/lcsl90/allinscrum` / `latest` | Image; für den Betrieb eine feste Version setzen               |
+| `namespace`                                | `allinscrum`                           | Namespace aller Ressourcen; leer = Namespace des Releases      |
 | `config.*`                                 | wie oben                               | Umgebungsvariablen aus dem Abschnitt Konfiguration             |
 | `ingress.enabled` / `ingress.host`         | `false` / Beispielname                 | Ingress (ingress-nginx); setzt zugleich `TRUST_PROXY=true`     |
 | `ingress.tls.secretName`                   | `<Release>-tls`                        | TLS-Secret, z. B. von cert-manager                             |

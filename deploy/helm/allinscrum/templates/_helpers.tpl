@@ -16,6 +16,11 @@
 {{- end }}
 {{- end }}
 
+{{/* Namespace aller Ressourcen; leer = Namespace des Releases (helm --namespace). */}}
+{{- define "allinscrum.namespace" -}}
+{{- default .Release.Namespace .Values.namespace }}
+{{- end }}
+
 {{- define "allinscrum.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "allinscrum.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
