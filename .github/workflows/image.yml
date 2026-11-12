@@ -23,6 +23,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run check
+      - run: helm lint deploy/helm/allinscrum --strict
 
   image:
     needs: check

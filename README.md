@@ -134,7 +134,33 @@ Das Image baut die GitHub Action [`image.yml`](.github/workflows/image.yml) und 
 oder eine feste Version setzt man in `kustomization.yaml` unter `images`. Ist das Paket privat,
 braucht der Namespace ein `imagePullSecret`.
 
-Wichtig:
+### Helm
+
+Dasselbe als Chart unter [`deploy/helm/allinscrum`](deploy/helm/allinscrum):
+
+```bash
+helm upgrade --install allinscrum deploy/helm/allinscrum \
+  --namespace allinscrum --create-namespace \
+  --set image.tag=1.2.3 \
+  --set ingress.enabled=true --set ingress.host=allinscrum.example.com
+```
+
+Die wichtigsten Werte (alle in [`values.yaml`](deploy/helm/allinscrum/values.yaml) beschrieben):
+
+| Wert                                       | Standard                               | Bedeutung                                                      |
+| ------------------------------------------ | -------------------------------------- | -------------------------------------------------------------- |
+| `image.repository` / `image.tag`           | `ghcr.io/lcsl90/allinscrum` / `latest` | Image; für den Betrieb eine feste Version setzen               |
+| `config.*`                                 | wie oben                               | Umgebungsvariablen aus dem Abschnitt Konfiguration             |
+| `ingress.enabled` / `ingress.host`         | `false` / Beispielname                 | Ingress (ingress-nginx); setzt zugleich `TRUST_PROXY=true`     |
+| `ingress.tls.secretName`                   | `<Release>-tls`                        | TLS-Secret, z. B. von cert-manager                             |
+| `persistence.enabled` / `persistence.size` | `true` / `256Mi`                       | Daten-Volume für die Tische; `existingClaim` nutzt ein eigenes |
+| `networkPolicy.enabled`                    | `true`                                 | Nur der HTTP-Port ist erreichbar, kein ausgehender Verkehr     |
+
+Ohne Ingress erreicht man den Dienst zum Ausprobieren über
+`kubectl -n allinscrum port-forward svc/allinscrum 41400:80`. `helm uninstall` löscht auch das
+Daten-Volume und damit die Tische.
+
+### Betriebshinweise
 
 - **Genau ein Replikat.** Laufende Runden leben im Arbeitsspeicher eines Prozesses – mehrere Pods
   würden Tische aufteilen. Deshalb auch `strategy: Recreate`. Die Tische selbst überstehen ein

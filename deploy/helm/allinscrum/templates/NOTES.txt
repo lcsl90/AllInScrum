@@ -1,0 +1,13 @@
+AllInScrum läuft als ein Pod ({{ include "allinscrum.fullname" . }}).
+{{ if .Values.ingress.enabled }}
+Erreichbar unter: http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}
+{{- else }}
+Kein Ingress aktiviert – zum Ausprobieren:
+
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "allinscrum.fullname" . }} 41400:{{ .Values.service.port }}
+
+Danach: http://localhost:41400
+{{- end }}
+{{ if not .Values.persistence.enabled }}
+Achtung: persistence.enabled=false – die Tische gehen mit jedem Neustart des Pods verloren.
+{{- end }}
