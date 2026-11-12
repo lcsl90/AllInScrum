@@ -25,8 +25,12 @@ WORKDIR /app
 COPY --from=build /app/apps/server/dist/ ./
 COPY --from=build /app/apps/web/dist/ ./public/
 
+# Zur Laufzeit genügt "node": npm, npx und corepack aus dem Base-Image fliegen raus – ihre
+# mitgelieferten Pakete (undici, glob, minimatch, …) wären sonst nur Angriffsfläche und CVE-Meldungen.
 # Die Tische überstehen Neustarts in /data – das einzige Verzeichnis, in das der Server schreibt.
-RUN mkdir /data && chown node:node /data
+RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+           /opt/yarn-* /usr/local/bin/yarn /usr/local/bin/yarnpkg \
+    && mkdir /data && chown node:node /data
 VOLUME ["/data"]
 
 USER node
